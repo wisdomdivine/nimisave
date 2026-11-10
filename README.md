@@ -8,11 +8,10 @@ Gamified savings platform with interactive 3D goal stages and Nimiq settlement.
 2. Nimiq settlement layer with zero gas micro deposits
 3. Voluntary hobby savings triggers for football basketball gaming and crypto
 4. Responsible non punitive emergency withdrawal policies
-5. Minimalist design powered by Satoshi typography
+5. Minimalist design powered by Neue Montreal typography
 
 ## Getting started
 
 Run npm install to install dependencies.
 Run npm run dev to launch the local Vite development server.
 Run npm run build to compile the production bundle.
-
