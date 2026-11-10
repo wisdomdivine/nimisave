@@ -39,7 +39,7 @@ export const Header: React.FC = () => {
       <div className="flex items-center gap-6">
         <NavLink
           to="/create"
-          className="flex items-center gap-2 text-xs text-neutral-300 hover:text-neutral-100 px-3 py-2 rounded-xl hover:bg-neutral-900/60 cursor-pointer transition-colors"
+          className="flex items-center gap-2 text-xs bg-neutral-100 text-neutral-950 hover:bg-neutral-200 px-4 py-2 rounded-xl cursor-pointer transition-colors"
         >
           <PlusSignIcon size={14} />
           <span>Create Goal</span>

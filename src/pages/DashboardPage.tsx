@@ -230,7 +230,7 @@ export const DashboardPage: React.FC = () => {
           </h3>
           <Link
             to="/create"
-            className="flex items-center gap-2 text-xs text-neutral-300 hover:text-neutral-100 transition-colors cursor-pointer"
+            className="flex items-center gap-2 text-xs bg-neutral-800 text-neutral-200 hover:bg-neutral-700 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
           >
             <PlusSignIcon size={14} />
             <span>New Box</span>
