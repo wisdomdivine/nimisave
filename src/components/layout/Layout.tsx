@@ -10,11 +10,10 @@ export const Layout: React.FC = () => {
         <Outlet />
       </main>
       <footer className="w-full py-12 px-6 sm:px-12 text-center text-xs text-neutral-500">
-        <p className="tracking-wide">
+        <p>
           gammy savings platform built with Nimiq settlement
         </p>
       </footer>
     </div>
   );
 };
-

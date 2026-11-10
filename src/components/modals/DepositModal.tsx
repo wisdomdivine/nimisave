@@ -62,7 +62,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
     <Modal isOpen={isOpen} onClose={onClose} title={`Contribute to ${goal.title}`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <span className="text-xs text-neutral-400 tracking-wider">
+          <span className="text-xs text-neutral-400">
             Quick selection
           </span>
           <div className="grid grid-cols-5 gap-2">

@@ -69,7 +69,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
         />
 
         <div className="flex flex-col gap-3">
-          <label className="text-xs text-neutral-400 tracking-wider">
+          <label className="text-xs text-neutral-400">
             Withdrawal category
           </label>
           <div className="grid grid-cols-2 gap-3">

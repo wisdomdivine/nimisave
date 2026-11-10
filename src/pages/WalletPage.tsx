@@ -20,7 +20,7 @@ export const WalletPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-3">
-        <h1 className="text-2xl text-neutral-100 tracking-wide">
+        <h1 className="text-2xl text-neutral-100">
           Nimiq Settlement Wallet
         </h1>
         <p className="text-sm text-neutral-300 max-w-3xl leading-relaxed">
@@ -33,7 +33,7 @@ export const WalletPage: React.FC = () => {
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <Card className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-300 tracking-wider">
+            <span className="text-xs text-neutral-300">
               Settlement Balance
             </span>
             <Wallet01Icon size={16} className="text-neutral-300" />
@@ -48,7 +48,7 @@ export const WalletPage: React.FC = () => {
 
         <Card className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-300 tracking-wider">
+            <span className="text-xs text-neutral-300">
               Emergency Passes
             </span>
             <Coins01Icon size={16} className="text-neutral-300" />
@@ -63,7 +63,7 @@ export const WalletPage: React.FC = () => {
 
         <Card className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-300 tracking-wider">
+            <span className="text-xs text-neutral-300">
               Gasless Transactions
             </span>
             <Coins01Icon size={16} className="text-neutral-300" />
@@ -80,7 +80,7 @@ export const WalletPage: React.FC = () => {
       {/* On chain address block */}
       <Card className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-neutral-300 tracking-wider">
+          <span className="text-xs text-neutral-300">
             Dedicated Nimiq Settlement Address
           </span>
           <span className="text-xs text-neutral-300">
@@ -89,7 +89,7 @@ export const WalletPage: React.FC = () => {
         </div>
 
         <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <span className="text-xs text-neutral-200 tracking-widest break-all">
+          <span className="text-xs text-neutral-200 break-all">
             {formatNimiqAddress(wallet.nimiqAddress)}
           </span>
           <Button variant="secondary" size="sm" onClick={handleCopy}>
@@ -113,7 +113,7 @@ export const WalletPage: React.FC = () => {
 
       {/* Full on chain audit log */}
       <section className="flex flex-col gap-6">
-        <h3 className="text-lg tracking-wide text-neutral-100">
+        <h3 className="text-lg text-neutral-100">
           Complete Settlement Records
         </h3>
 

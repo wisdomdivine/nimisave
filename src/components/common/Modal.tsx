@@ -29,7 +29,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-none">
       <div className="w-full max-w-lg bg-neutral-900 p-8 rounded-3xl flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg tracking-wide text-neutral-100">
+          <h3 className="text-lg text-neutral-100">
             {title}
           </h3>
           <button

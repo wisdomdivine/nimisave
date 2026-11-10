@@ -41,7 +41,7 @@ export const DashboardPage: React.FC = () => {
       {/* Top statistics summary */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <Card className="flex flex-col gap-2">
-          <span className="text-xs text-neutral-300 tracking-wider">
+          <span className="text-xs text-neutral-300">
             Total Funds Saved
           </span>
           <div className="text-3xl text-neutral-100">
@@ -53,7 +53,7 @@ export const DashboardPage: React.FC = () => {
         </Card>
 
         <Card className="flex flex-col gap-2">
-          <span className="text-xs text-neutral-300 tracking-wider">
+          <span className="text-xs text-neutral-300">
             Overall Dream Progress
           </span>
           <div className="text-3xl text-neutral-100">
@@ -65,7 +65,7 @@ export const DashboardPage: React.FC = () => {
         </Card>
 
         <Card className="flex flex-col gap-2">
-          <span className="text-xs text-neutral-300 tracking-wider">
+          <span className="text-xs text-neutral-300">
             Emergency Access Passes
           </span>
           <div className="text-3xl text-neutral-100">
@@ -81,7 +81,7 @@ export const DashboardPage: React.FC = () => {
       {activePrompt && (
         <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex flex-col gap-1 max-w-2xl">
-            <span className="text-xs text-neutral-300 tracking-wider">
+            <span className="text-xs text-neutral-300">
               Voluntary Hobby Trigger ({activePrompt.teamOrTopic})
             </span>
             <p className="text-sm text-neutral-200">
@@ -146,7 +146,7 @@ export const DashboardPage: React.FC = () => {
           <div className="lg:w-5/12 p-8 flex flex-col justify-between gap-8 bg-neutral-900">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-neutral-300 tracking-wider">
+                <span className="text-xs text-neutral-300">
                   Active Visual Goal
                 </span>
                 <span className="text-xs text-neutral-300">
@@ -154,7 +154,7 @@ export const DashboardPage: React.FC = () => {
                 </span>
               </div>
 
-              <h2 className="text-2xl text-neutral-100 tracking-wide">
+              <h2 className="text-2xl text-neutral-100">
                 {activeGoal.title}
               </h2>
 
@@ -174,7 +174,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Milestones list */}
               <div className="flex flex-col gap-3 pt-4">
-                <span className="text-xs text-neutral-300 tracking-wider">
+                <span className="text-xs text-neutral-300">
                   Construction Milestones
                 </span>
                 <div className="flex flex-col gap-2">
@@ -225,7 +225,7 @@ export const DashboardPage: React.FC = () => {
       {/* Goal boxes list */}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg tracking-wide text-neutral-100">
+          <h3 className="text-lg text-neutral-100">
             Your Savings Boxes
           </h3>
           <Link
@@ -252,7 +252,7 @@ export const DashboardPage: React.FC = () => {
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between text-xs text-neutral-300">
-                    <span className="tracking-wider capitalize">{g.category}</span>
+                    <span className="capitalize">{g.category}</span>
                     <span>{pct}%</span>
                   </div>
                   <h4 className="text-base text-neutral-100">
@@ -279,7 +279,7 @@ export const DashboardPage: React.FC = () => {
       {/* Recent Nimiq settlement transactions */}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg tracking-wide text-neutral-100">
+          <h3 className="text-lg text-neutral-100">
             Recent Settlement Activity
           </h3>
           <Link

@@ -7,7 +7,7 @@ export const Header: React.FC = () => {
   const { wallet } = useSavings();
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2.5 text-sm tracking-wide transition-all cursor-pointer px-4 py-2 rounded-xl ${
+    `flex items-center gap-2.5 text-sm transition-all cursor-pointer px-4 py-2 rounded-xl ${
       isActive
         ? 'bg-neutral-800 text-neutral-100'
         : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/60'
@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
   return (
     <header className="w-full bg-neutral-950 py-6 px-6 sm:px-12 flex items-center justify-between">
       <div className="flex items-center gap-10">
-        <NavLink to="/" className="text-xl tracking-widest text-neutral-100 cursor-pointer">
+        <NavLink to="/" className="text-xl text-neutral-100 cursor-pointer">
           Gammy
         </NavLink>
 
@@ -46,7 +46,7 @@ export const Header: React.FC = () => {
         </NavLink>
 
         <div className="text-right">
-          <div className="text-xs text-neutral-300 tracking-wider">
+          <div className="text-xs text-neutral-300">
             Nimiq Gas Free Settlement
           </div>
           <div className="text-xs text-neutral-400">

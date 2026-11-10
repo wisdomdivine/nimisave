@@ -40,7 +40,7 @@ export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) =>
       </Canvas>
 
       <div className="absolute bottom-4 left-6 pointer-events-none">
-        <span className="text-xs tracking-wider text-neutral-400">
+        <span className="text-xs text-neutral-400">
           Rotate to explore 3D stage
         </span>
       </div>

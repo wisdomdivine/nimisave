@@ -50,7 +50,7 @@ export const HobbyPromptsPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-3">
-        <h1 className="text-2xl text-neutral-100 tracking-wide">
+        <h1 className="text-2xl text-neutral-100">
           Hobby Savings Prompts
         </h1>
         <p className="text-sm text-neutral-300 max-w-3xl leading-relaxed">
@@ -61,7 +61,7 @@ export const HobbyPromptsPage: React.FC = () => {
 
       {/* Strict boundary notice */}
       <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col gap-2">
-        <span className="text-xs text-neutral-200 tracking-wider">
+        <span className="text-xs text-neutral-200">
           Responsible Financial Design Boundary
         </span>
         <p className="text-xs text-neutral-300 leading-relaxed">
@@ -85,7 +85,7 @@ export const HobbyPromptsPage: React.FC = () => {
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 text-xs tracking-wide transition-colors rounded-xl cursor-pointer ${
+              className={`px-4 py-2 text-xs transition-colors rounded-xl cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-neutral-100 text-neutral-950 font-normal'
                   : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
@@ -122,7 +122,7 @@ export const HobbyPromptsPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {getHobbyIcon(prompt.hobbyCategory)}
-                  <span className="text-xs text-neutral-300 tracking-wider capitalize">
+                  <span className="text-xs text-neutral-300 capitalize">
                     {prompt.hobbyCategory}
                   </span>
                 </div>

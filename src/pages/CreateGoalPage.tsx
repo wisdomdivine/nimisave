@@ -62,7 +62,7 @@ export const CreateGoalPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-10 max-w-2xl mx-auto w-full">
       <div className="flex flex-col gap-3">
-        <h1 className="text-2xl text-neutral-100 tracking-wide">
+        <h1 className="text-2xl text-neutral-100">
           Create New Savings Box
         </h1>
         <p className="text-sm text-neutral-300 leading-relaxed">
@@ -74,7 +74,7 @@ export const CreateGoalPage: React.FC = () => {
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         {/* Category selector */}
         <div className="flex flex-col gap-3">
-          <label className="text-xs text-neutral-300 tracking-wider">
+          <label className="text-xs text-neutral-300">
             Choose Your 3D Asset or Category
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
