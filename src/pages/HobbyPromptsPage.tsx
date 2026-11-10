@@ -32,6 +32,21 @@ export const HobbyPromptsPage: React.FC = () => {
     }
   };
 
+  const getTagStyle = (cat: HobbyCategory) => {
+    switch (cat) {
+      case 'football':
+        return 'bg-red-950/60 text-red-300';
+      case 'basketball':
+        return 'bg-amber-950/60 text-amber-300';
+      case 'gaming':
+        return 'bg-purple-950/60 text-purple-300';
+      case 'crypto':
+        return 'bg-emerald-950/60 text-emerald-300';
+      default:
+        return 'bg-neutral-800 text-neutral-300';
+    }
+  };
+
   const handleTrigger = async (promptId: string) => {
     if (!targetGoalId) return;
     const ok = await acceptPrompt(promptId, targetGoalId);
@@ -132,7 +147,7 @@ export const HobbyPromptsPage: React.FC = () => {
                     {prompt.hobbyCategory}
                   </span>
                 </div>
-                <span className="text-xs text-neutral-300">
+                <span className={`text-xs px-2.5 py-1 rounded-lg ${getTagStyle(prompt.hobbyCategory)}`}>
                   {prompt.teamOrTopic}
                 </span>
               </div>
