@@ -7,14 +7,14 @@ export const Header: React.FC = () => {
   const { wallet } = useSavings();
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2 text-sm font-light tracking-wide transition-colors cursor-pointer ${
-      isActive ? 'text-neutral-100' : 'text-neutral-400 hover:text-neutral-200'
+    `flex items-center gap-2 text-sm tracking-wide transition-colors cursor-pointer ${
+      isActive ? 'text-neutral-100' : 'text-neutral-300 hover:text-neutral-100'
     }`;
 
   return (
     <header className="w-full bg-neutral-950 py-6 px-6 sm:px-12 flex items-center justify-between">
       <div className="flex items-center gap-12">
-        <NavLink to="/" className="text-xl font-light tracking-widest text-neutral-100 cursor-pointer">
+        <NavLink to="/" className="text-xl tracking-widest text-neutral-100 cursor-pointer">
           gammy
         </NavLink>
 
@@ -37,17 +37,17 @@ export const Header: React.FC = () => {
       <div className="flex items-center gap-6">
         <NavLink
           to="/create"
-          className="flex items-center gap-2 text-xs font-light text-neutral-300 hover:text-neutral-100 cursor-pointer transition-colors"
+          className="flex items-center gap-2 text-xs text-neutral-300 hover:text-neutral-100 cursor-pointer transition-colors"
         >
           <PlusSignIcon size={14} />
           <span>create goal</span>
         </NavLink>
 
         <div className="text-right">
-          <div className="text-xs font-light text-neutral-400 tracking-wider">
+          <div className="text-xs text-neutral-300 tracking-wider">
             Nimiq gas free settlement
           </div>
-          <div className="text-xs font-light text-neutral-200">
+          <div className="text-xs text-neutral-200">
             {wallet.sponsoredTxCount} transactions sponsored
           </div>
         </div>

@@ -41,37 +41,37 @@ export const DashboardPage: React.FC = () => {
       {/* Top statistics summary */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <Card className="flex flex-col gap-2">
-          <span className="text-xs font-light text-neutral-400 tracking-wider">
+          <span className="text-xs text-neutral-300 tracking-wider">
             Total funds saved
           </span>
-          <div className="text-3xl font-light text-neutral-100">
+          <div className="text-3xl text-neutral-100">
             ${totalSaved.toLocaleString()}
           </div>
-          <span className="text-xs font-light text-neutral-400">
+          <span className="text-xs text-neutral-300">
             Across {goals.length} personal savings boxes
           </span>
         </Card>
 
         <Card className="flex flex-col gap-2">
-          <span className="text-xs font-light text-neutral-400 tracking-wider">
+          <span className="text-xs text-neutral-300 tracking-wider">
             Overall dream progress
           </span>
-          <div className="text-3xl font-light text-neutral-100">
+          <div className="text-3xl text-neutral-100">
             {overallPercent}%
           </div>
-          <span className="text-xs font-light text-neutral-400">
+          <span className="text-xs text-neutral-300">
             ${(totalTarget - totalSaved).toLocaleString()} remaining to goals
           </span>
         </Card>
 
         <Card className="flex flex-col gap-2">
-          <span className="text-xs font-light text-neutral-400 tracking-wider">
+          <span className="text-xs text-neutral-300 tracking-wider">
             Emergency withdrawal access
           </span>
-          <div className="text-3xl font-light text-neutral-100">
+          <div className="text-3xl text-neutral-100">
             {wallet.freeEmergencyWithdrawalsRemaining} free passes
           </div>
-          <span className="text-xs font-light text-neutral-400">
+          <span className="text-xs text-neutral-300">
             Capped fees if extra access is needed
           </span>
         </Card>
@@ -81,10 +81,10 @@ export const DashboardPage: React.FC = () => {
       {activePrompt && (
         <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex flex-col gap-1 max-w-2xl">
-            <span className="text-xs font-light text-neutral-400 tracking-wider">
+            <span className="text-xs text-neutral-300 tracking-wider">
               Voluntary hobby trigger ({activePrompt.teamOrTopic})
             </span>
-            <p className="text-sm font-light text-neutral-200">
+            <p className="text-sm text-neutral-200">
               {activePrompt.eventDescription}
             </p>
           </div>
@@ -121,9 +121,9 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <div className="p-6 bg-neutral-900 flex flex-col gap-3">
-              <div className="flex items-center justify-between text-xs font-light text-neutral-400">
+              <div className="flex items-center justify-between text-xs text-neutral-300">
                 <span>Interactive build preview slider</span>
-                <span className="text-neutral-200">{displayPercent}% visual stage</span>
+                <span className="text-neutral-100">{displayPercent}% visual stage</span>
               </div>
               <input
                 type="range"
@@ -133,7 +133,7 @@ export const DashboardPage: React.FC = () => {
                 onChange={(e) => setPreviewPercent(Number(e.target.value))}
                 className="w-full accent-neutral-100 cursor-pointer bg-neutral-800 h-1 rounded-full"
               />
-              <div className="flex justify-between text-xs font-light text-neutral-400">
+              <div className="flex justify-between text-xs text-neutral-300">
                 <span>Ground work</span>
                 <span>Framing</span>
                 <span>Enclosure</span>
@@ -146,35 +146,35 @@ export const DashboardPage: React.FC = () => {
           <div className="lg:w-5/12 p-8 flex flex-col justify-between gap-8 bg-neutral-900">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-light text-neutral-400 tracking-wider">
+                <span className="text-xs text-neutral-300 tracking-wider">
                   Active visual goal
                 </span>
-                <span className="text-xs font-light text-neutral-400">
+                <span className="text-xs text-neutral-300">
                   Target ${activeGoal.targetAmount.toLocaleString()}
                 </span>
               </div>
 
-              <h2 className="text-2xl font-light text-neutral-100 tracking-wide">
+              <h2 className="text-2xl text-neutral-100 tracking-wide">
                 {activeGoal.title}
               </h2>
 
               <div className="flex items-baseline gap-3 pt-2">
-                <span className="text-3xl font-light text-neutral-100">
+                <span className="text-3xl text-neutral-100">
                   ${activeGoal.currentAmount.toLocaleString()}
                 </span>
-                <span className="text-sm font-light text-neutral-400">
+                <span className="text-sm text-neutral-300">
                   saved ({currentGoalPercent}% completed)
                 </span>
               </div>
 
-              <p className="text-xs font-light text-neutral-400 leading-relaxed pt-2">
+              <p className="text-xs text-neutral-300 leading-relaxed pt-2">
                 Every contribution assembles new physical parts of your 3D asset.
                 Settled through Nimiq with zero gas cost.
               </p>
 
               {/* Milestones list */}
               <div className="flex flex-col gap-3 pt-4">
-                <span className="text-xs font-light text-neutral-400 tracking-wider">
+                <span className="text-xs text-neutral-300 tracking-wider">
                   Construction milestones
                 </span>
                 <div className="flex flex-col gap-2">
@@ -183,17 +183,17 @@ export const DashboardPage: React.FC = () => {
                     return (
                       <div
                         key={m.id}
-                        className={`p-4 rounded-xl flex items-center justify-between text-xs font-light transition-colors ${
+                        className={`p-4 rounded-xl flex items-center justify-between text-xs transition-colors ${
                           isUnlocked
                             ? 'bg-neutral-800 text-neutral-100'
-                            : 'bg-neutral-950 text-neutral-400'
+                            : 'bg-neutral-950 text-neutral-300'
                         }`}
                       >
                         <div className="flex flex-col gap-1">
-                          <span>{m.name}</span>
-                          <span className="text-neutral-400">{m.description}</span>
+                          <span className="text-neutral-200">{m.name}</span>
+                          <span className="text-neutral-300">{m.description}</span>
                         </div>
-                        <span>{m.thresholdPercent}%</span>
+                        <span className="text-neutral-200">{m.thresholdPercent}%</span>
                       </div>
                     );
                   })}
@@ -225,12 +225,12 @@ export const DashboardPage: React.FC = () => {
       {/* Goal boxes list */}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-light tracking-wide text-neutral-100">
+          <h3 className="text-lg tracking-wide text-neutral-100">
             Your savings boxes
           </h3>
           <Link
             to="/create"
-            className="flex items-center gap-2 text-xs font-light text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
+            className="flex items-center gap-2 text-xs text-neutral-300 hover:text-neutral-100 transition-colors cursor-pointer"
           >
             <PlusSignIcon size={14} />
             <span>New box</span>
@@ -251,22 +251,22 @@ export const DashboardPage: React.FC = () => {
                 }`}
               >
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between text-xs font-light text-neutral-400">
+                  <div className="flex items-center justify-between text-xs text-neutral-300">
                     <span className="tracking-wider">{g.category}</span>
                     <span>{pct}%</span>
                   </div>
-                  <h4 className="text-base font-light text-neutral-100">
+                  <h4 className="text-base text-neutral-100">
                     {g.title}
                   </h4>
-                  <div className="text-xl font-light text-neutral-100 pt-2">
+                  <div className="text-xl text-neutral-100 pt-2">
                     ${g.currentAmount.toLocaleString()}
                   </div>
-                  <span className="text-xs font-light text-neutral-400">
+                  <span className="text-xs text-neutral-300">
                     Goal of ${g.targetAmount.toLocaleString()}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 text-xs font-light text-neutral-400">
+                <div className="flex items-center justify-between pt-4 text-xs text-neutral-300">
                   <span>{isSelected ? 'Viewing in 3D' : 'Click to inspect in 3D'}</span>
                   <ArrowUpRight01Icon size={14} />
                 </div>
@@ -279,12 +279,12 @@ export const DashboardPage: React.FC = () => {
       {/* Recent Nimiq settlement transactions */}
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-light tracking-wide text-neutral-100">
+          <h3 className="text-lg tracking-wide text-neutral-100">
             Recent settlement activity
           </h3>
           <Link
             to="/wallet"
-            className="text-xs font-light text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
+            className="text-xs text-neutral-300 hover:text-neutral-100 transition-colors cursor-pointer"
           >
             View all records
           </Link>
@@ -294,25 +294,25 @@ export const DashboardPage: React.FC = () => {
           {transactions.slice(0, 4).map((tx) => (
             <div
               key={tx.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-2 text-xs font-light text-neutral-300"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-2 text-xs text-neutral-200"
             >
               <div className="flex items-center gap-4">
-                <Coins01Icon size={16} className="text-neutral-400" />
+                <Coins01Icon size={16} className="text-neutral-300" />
                 <div className="flex flex-col gap-1">
                   <span className="text-neutral-100">{tx.goalTitle}</span>
-                  <span className="text-neutral-400">{tx.note || tx.type}</span>
+                  <span className="text-neutral-300">{tx.note || tx.type}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-6">
-                <span className="text-neutral-400 text-2xs truncate max-w-xs hidden md:inline">
+                <span className="text-neutral-300 text-xs truncate max-w-xs hidden md:inline">
                   {tx.txHash.slice(0, 16)}...
                 </span>
-                <span className="text-neutral-400">{tx.date}</span>
+                <span className="text-neutral-300">{tx.date}</span>
                 <span
                   className={
                     tx.type === 'withdrawal'
-                      ? 'text-neutral-400'
+                      ? 'text-neutral-300'
                       : 'text-neutral-100'
                   }
                 >
