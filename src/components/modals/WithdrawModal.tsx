@@ -67,7 +67,12 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Withdraw from ${goal.title}`}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Withdraw from ${goal.title}`}
+      maxWidth="max-w-2xl"
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6">
         <div className="flex flex-col gap-1 text-xs text-neutral-400">
           <span>Available in this goal box</span>

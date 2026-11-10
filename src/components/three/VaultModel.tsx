@@ -200,3 +200,4 @@ export const VaultModel: React.FC<VaultModelProps> = ({ progress }) => {
     </group>
   );
 };
+

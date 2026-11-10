@@ -81,7 +81,12 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Contribute to ${goal.title}`}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Contribute to ${goal.title}`}
+      maxWidth="max-w-2xl"
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6">
         {/* Currency selection toggle */}
         <div className="flex flex-col gap-2">

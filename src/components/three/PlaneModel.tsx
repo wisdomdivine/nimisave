@@ -252,3 +252,4 @@ export const PlaneModel: React.FC<PlaneModelProps> = ({ progress }) => {
     </group>
   );
 };
+
