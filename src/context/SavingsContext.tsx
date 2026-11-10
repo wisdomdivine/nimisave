@@ -36,6 +36,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import {
   connectLiveEvmWallet,
   connectLiveNimiqHub,
+  connectLiveNimiqAddress,
   getLiveWalletSession,
   disconnectLiveWallet,
   fetchLiveNimPrice,
@@ -61,7 +62,7 @@ interface SavingsContextType {
   isWalletConnected: boolean;
   isSessionLoading: boolean;
   walletProvider: string | null;
-  connectWallet: (provider: string) => Promise<void>;
+  connectWallet: (provider: string, customAddress?: string) => Promise<void>;
   disconnectWallet: () => void;
   isConnectModalOpen: boolean;
   setIsConnectModalOpen: (open: boolean) => void;
@@ -504,11 +505,15 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  const connectWallet = async (provider: string) => {
+  const connectWallet = async (provider: string, customAddress?: string) => {
     let session: LiveWalletSession;
 
-    if (provider === 'MetaMask and EVM') {
+    if (customAddress && customAddress.trim()) {
+      session = await connectLiveNimiqAddress(customAddress.trim());
+    } else if (provider === 'MetaMask and EVM') {
       session = await connectLiveEvmWallet();
+    } else if (provider === 'Nimiq Pay') {
+      session = await connectLiveNimiqAddress(customAddress || '');
     } else if (provider === 'Nimiq Hub') {
       session = await connectLiveNimiqHub();
     } else {

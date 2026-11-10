@@ -220,6 +220,34 @@ async function runTestSuite() {
     });
     assert(modalTitle.includes('Connect') || modalTitle.includes('Wallet'), 'Connect Settlement Wallet modal opened');
 
+    // Test Nimiq Pay mobile address input presence & validation
+    const nimiqInputExists = await page.evaluate(() => {
+      const input = document.querySelector('input[placeholder*="paste address from Nimiq Pay"]');
+      return input !== null;
+    });
+    assert(nimiqInputExists, 'Nimiq Pay mobile address input box is present in connect modal');
+
+    // Test typing invalid address
+    await page.type('input[placeholder*="paste address from Nimiq Pay"]', 'NQ123');
+    await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Connect Address'));
+      if (btn) btn.click();
+    });
+    await new Promise(r => setTimeout(r, 400));
+    const invalidErrorShown = await page.evaluate(() => {
+      return document.body.innerText.includes('Please enter a valid Nimiq address');
+    });
+    assert(invalidErrorShown, 'Invalid Nimiq address blocked with helpful validation error');
+
+    // Clear input
+    await page.evaluate(() => {
+      const input = document.querySelector('input[placeholder*="paste address from Nimiq Pay"]');
+      if (input) {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+
     await page.evaluate(() => {
       const option = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('MetaMask and EVM'));
       if (option) option.click();

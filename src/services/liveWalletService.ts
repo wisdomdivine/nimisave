@@ -10,7 +10,7 @@ declare global {
 
 export interface LiveWalletSession {
   address: string;
-  provider: 'MetaMask and EVM' | 'Nimiq Hub' | 'Manual Web3';
+  provider: 'MetaMask and EVM' | 'Nimiq Hub' | 'Nimiq Pay' | 'Manual Web3';
   signature?: string;
   message?: string;
   chainId?: number;
@@ -131,24 +131,81 @@ export async function connectLiveEvmWallet(): Promise<LiveWalletSession> {
 }
 
 /**
+ * Connect using a Nimiq address (e.g. copied from Nimiq Pay mobile app)
+ */
+export async function connectLiveNimiqAddress(rawAddress: string): Promise<LiveWalletSession> {
+  const clean = (rawAddress || '').replace(/\s+/g, '').toUpperCase();
+  if (!clean.startsWith('NQ') || clean.length !== 36 || !/^[0-9A-Z]{36}$/.test(clean)) {
+    throw new Error('Please enter a valid Nimiq address starting with NQ');
+  }
+
+  const formattedAddress = clean.match(/.{1,4}/g)?.join(' ') || clean;
+
+  // Attempt to fetch live balance from Nimiq network
+  let balanceNim = 0;
+  try {
+    const encoded = encodeURIComponent(formattedAddress);
+    const res = await fetch(`https://api.nimiq.watch/api/v1/account/${encoded}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (typeof data.balance === 'number') {
+        balanceNim = data.balance / 100000;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not read Nimiq balance:', err);
+  }
+
+  const nonce = generateSiweNonce();
+  const challengeMessage = `Nimisave Authentication Challenge\nSigner: ${formattedAddress}\nTimestamp: ${Date.now()}\nNonce: ${nonce}`;
+  const signature = `nim_pay_${Date.now()}`;
+
+  const session: LiveWalletSession = {
+    address: formattedAddress,
+    provider: 'Nimiq Pay',
+    signature,
+    message: challengeMessage,
+    balanceNim,
+    balanceUsdt: Math.round(balanceNim * 0.0035 * 100) / 100,
+    connectedAt: Date.now(),
+  };
+
+  // Seal session in secure session storage
+  await setSecureSessionItem(SESSION_STORAGE_KEY, session);
+
+  // Sync profile with remote cloud store asynchronously
+  upsertRemoteUserProfile(formattedAddress, {});
+
+  return session;
+}
+
+/**
  * Connect to live Nimiq Hub wallet
  */
-export async function connectLiveNimiqHub(): Promise<LiveWalletSession> {
+export async function connectLiveNimiqHub(targetSigner?: string): Promise<LiveWalletSession> {
   try {
     const hubApi = new HubApi('https://hub.nimiq.com');
 
-    // Request address selection via Nimiq Hub popup
-    const result = await hubApi.chooseAddress({
-      appName: 'Nimisave',
-    });
+    let nimAddress = '';
+    let balanceNim = 0;
 
-    if (!result || !result.address) {
-      throw new Error('Nimiq Hub connection was cancelled.');
+    if (targetSigner && targetSigner.trim()) {
+      const clean = targetSigner.replace(/\s+/g, '').toUpperCase();
+      nimAddress = clean.match(/.{1,4}/g)?.join(' ') || clean;
+    } else {
+      // Request address selection via Nimiq Hub popup
+      const result = await hubApi.chooseAddress({
+        appName: 'Nimisave',
+      });
+
+      if (!result || !result.address) {
+        throw new Error('Nimiq Hub connection was cancelled.');
+      }
+
+      nimAddress = result.address;
+      const balanceLuna = typeof (result as any).balance === 'number' ? (result as any).balance : 0;
+      balanceNim = balanceLuna / 1e5; // 1 NIM = 100,000 Luna
     }
-
-    const nimAddress = result.address;
-    const balanceLuna = typeof (result as any).balance === 'number' ? (result as any).balance : 0;
-    const balanceNim = balanceLuna / 1e5; // 1 NIM = 100,000 Luna
 
     const challengeMessage = `Nimisave Authentication Challenge\nSigner: ${nimAddress}\nTimestamp: ${Date.now()}\nNonce: ${generateSiweNonce()}`;
     let signature = '';

@@ -25,6 +25,19 @@ export const formatNimiqAddress = (address?: string): string => {
   return stripped.match(/.{1,4}/g)?.join(' ') || address;
 };
 
+export const isValidNimiqAddress = (address?: string): boolean => {
+  if (!address) return false;
+  const stripped = address.replace(/\s+/g, '').toUpperCase();
+  if (!stripped.startsWith('NQ')) return false;
+  if (stripped.length !== 36) return false;
+  return /^[0-9A-Z]{36}$/.test(stripped);
+};
+
+export const normalizeNimiqAddress = (address: string): string => {
+  const stripped = (address || '').replace(/\s+/g, '').toUpperCase();
+  return stripped.match(/.{1,4}/g)?.join(' ') || stripped;
+};
+
 export const usdtToNim = (usdtAmount?: number | null): number => {
   const safe = typeof usdtAmount === 'number' && !isNaN(usdtAmount) ? usdtAmount : 0;
   return Math.round((safe / NIM_USD_RATE) * 100) / 100;
