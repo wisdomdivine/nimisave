@@ -42,37 +42,37 @@ export const DashboardPage: React.FC = () => {
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <Card className="flex flex-col gap-2">
           <span className="text-xs text-neutral-300 tracking-wider">
-            Total funds saved
+            Total Funds Saved
           </span>
           <div className="text-3xl text-neutral-100">
             ${totalSaved.toLocaleString()}
           </div>
           <span className="text-xs text-neutral-300">
-            Across {goals.length} personal savings boxes
+            Across {goals.length} Personal Savings Boxes
           </span>
         </Card>
 
         <Card className="flex flex-col gap-2">
           <span className="text-xs text-neutral-300 tracking-wider">
-            Overall dream progress
+            Overall Dream Progress
           </span>
           <div className="text-3xl text-neutral-100">
             {overallPercent}%
           </div>
           <span className="text-xs text-neutral-300">
-            ${(totalTarget - totalSaved).toLocaleString()} remaining to goals
+            ${(totalTarget - totalSaved).toLocaleString()} Remaining to Target
           </span>
         </Card>
 
         <Card className="flex flex-col gap-2">
           <span className="text-xs text-neutral-300 tracking-wider">
-            Emergency withdrawal access
+            Emergency Access Passes
           </span>
           <div className="text-3xl text-neutral-100">
-            {wallet.freeEmergencyWithdrawalsRemaining} free passes
+            {wallet.freeEmergencyWithdrawalsRemaining} Free Passes
           </div>
           <span className="text-xs text-neutral-300">
-            Capped fees if extra access is needed
+            Capped Fees if Extra Access is Needed
           </span>
         </Card>
       </section>
@@ -82,7 +82,7 @@ export const DashboardPage: React.FC = () => {
         <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex flex-col gap-1 max-w-2xl">
             <span className="text-xs text-neutral-300 tracking-wider">
-              Voluntary hobby trigger ({activePrompt.teamOrTopic})
+              Voluntary Hobby Trigger ({activePrompt.teamOrTopic})
             </span>
             <p className="text-sm text-neutral-200">
               {activePrompt.eventDescription}
@@ -105,7 +105,7 @@ export const DashboardPage: React.FC = () => {
                 }
               }}
             >
-              Save ${activePrompt.suggestedAmount} now
+              Save ${activePrompt.suggestedAmount} Now
             </Button>
           </div>
         </div>
@@ -122,8 +122,8 @@ export const DashboardPage: React.FC = () => {
 
             <div className="p-6 bg-neutral-900 flex flex-col gap-3">
               <div className="flex items-center justify-between text-xs text-neutral-300">
-                <span>Interactive build preview slider</span>
-                <span className="text-neutral-100">{displayPercent}% visual stage</span>
+                <span>Interactive Build Preview Slider</span>
+                <span className="text-neutral-100">{displayPercent}% Visual Stage</span>
               </div>
               <input
                 type="range"
@@ -134,7 +134,7 @@ export const DashboardPage: React.FC = () => {
                 className="w-full accent-neutral-100 cursor-pointer bg-neutral-800 h-1 rounded-full"
               />
               <div className="flex justify-between text-xs text-neutral-300">
-                <span>Ground work</span>
+                <span>Ground Work</span>
                 <span>Framing</span>
                 <span>Enclosure</span>
                 <span>Complete</span>
@@ -147,7 +147,7 @@ export const DashboardPage: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-neutral-300 tracking-wider">
-                  Active visual goal
+                  Active Visual Goal
                 </span>
                 <span className="text-xs text-neutral-300">
                   Target ${activeGoal.targetAmount.toLocaleString()}
@@ -175,7 +175,7 @@ export const DashboardPage: React.FC = () => {
               {/* Milestones list */}
               <div className="flex flex-col gap-3 pt-4">
                 <span className="text-xs text-neutral-300 tracking-wider">
-                  Construction milestones
+                  Construction Milestones
                 </span>
                 <div className="flex flex-col gap-2">
                   {activeGoal.milestones.map((m) => {
@@ -209,7 +209,7 @@ export const DashboardPage: React.FC = () => {
                 onClick={() => setIsDepositOpen(true)}
               >
                 <PlusSignIcon size={16} className="mr-2" />
-                Contribute funds
+                Contribute Funds
               </Button>
               <Button
                 variant="secondary"
@@ -226,14 +226,14 @@ export const DashboardPage: React.FC = () => {
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg tracking-wide text-neutral-100">
-            Your savings boxes
+            Your Savings Boxes
           </h3>
           <Link
             to="/create"
             className="flex items-center gap-2 text-xs text-neutral-300 hover:text-neutral-100 transition-colors cursor-pointer"
           >
             <PlusSignIcon size={14} />
-            <span>New box</span>
+            <span>New Box</span>
           </Link>
         </div>
 
@@ -252,7 +252,7 @@ export const DashboardPage: React.FC = () => {
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between text-xs text-neutral-300">
-                    <span className="tracking-wider">{g.category}</span>
+                    <span className="tracking-wider capitalize">{g.category}</span>
                     <span>{pct}%</span>
                   </div>
                   <h4 className="text-base text-neutral-100">
@@ -267,7 +267,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-4 text-xs text-neutral-300">
-                  <span>{isSelected ? 'Viewing in 3D' : 'Click to inspect in 3D'}</span>
+                  <span>{isSelected ? 'Viewing in 3D' : 'Click to Inspect in 3D'}</span>
                   <ArrowUpRight01Icon size={14} />
                 </div>
               </Card>
@@ -280,13 +280,13 @@ export const DashboardPage: React.FC = () => {
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg tracking-wide text-neutral-100">
-            Recent settlement activity
+            Recent Settlement Activity
           </h3>
           <Link
             to="/wallet"
             className="text-xs text-neutral-300 hover:text-neutral-100 transition-colors cursor-pointer"
           >
-            View all records
+            View All Records
           </Link>
         </div>
 

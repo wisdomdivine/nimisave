@@ -19,22 +19,22 @@ export const CreateGoalPage: React.FC = () => {
   const categories: { key: GoalCategory; label: string; desc: string }[] = [
     {
       key: 'house',
-      label: 'Dream house',
+      label: 'Dream House',
       desc: 'Watch foundation walls and roof assemble in 3D as you save',
     },
     {
       key: 'car',
-      label: 'Performance car',
+      label: 'Performance Car',
       desc: 'Chassis engine shell and wheels build up in 3D',
     },
     {
       key: 'trip',
-      label: 'Travel adventure',
+      label: 'Travel Adventure',
       desc: 'Milestones focused on plane tickets lodging and experiences',
     },
     {
       key: 'emergency',
-      label: 'Emergency buffer',
+      label: 'Emergency Buffer',
       desc: 'Readily accessible stash with zero deduction access terms',
     },
   ];
@@ -62,10 +62,10 @@ export const CreateGoalPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-10 max-w-2xl mx-auto w-full">
       <div className="flex flex-col gap-3">
-        <h1 className="text-2xl font-light text-neutral-100 tracking-wide">
-          Create a new savings box
+        <h1 className="text-2xl text-neutral-100 tracking-wide">
+          Create New Savings Box
         </h1>
-        <p className="text-sm font-light text-neutral-400 leading-relaxed">
+        <p className="text-sm text-neutral-300 leading-relaxed">
           Give your goal a visual shape. Pick a 3D asset theme or savings category,
           set your target, and start building brick by brick.
         </p>
@@ -74,8 +74,8 @@ export const CreateGoalPage: React.FC = () => {
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         {/* Category selector */}
         <div className="flex flex-col gap-3">
-          <label className="text-xs font-light text-neutral-400 tracking-wider">
-            Choose your 3D asset or category
+          <label className="text-xs text-neutral-300 tracking-wider">
+            Choose Your 3D Asset or Category
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {categories.map((c) => (
@@ -89,16 +89,16 @@ export const CreateGoalPage: React.FC = () => {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-light text-neutral-100">
+                  <span className="text-sm text-neutral-100">
                     {c.label}
                   </span>
                   {category === c.key && (
-                    <span className="text-xs font-light text-neutral-300">
+                    <span className="text-xs text-neutral-300">
                       Selected
                     </span>
                   )}
                 </div>
-                <p className="text-xs font-light text-neutral-400 leading-relaxed">
+                <p className="text-xs text-neutral-400 leading-relaxed">
                   {c.desc}
                 </p>
               </Card>
@@ -108,17 +108,17 @@ export const CreateGoalPage: React.FC = () => {
 
         {/* Form inputs */}
         <Input
-          label="Goal box title"
+          label="Goal Box Title"
           type="text"
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="For example Cabin in the Woods or Summer Holiday"
+          placeholder="For example Modern Mountain Cabin or Tokyo Trip"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <Input
-            label="Target amount in dollars"
+            label="Target Amount in Dollars"
             type="number"
             min="10"
             required
@@ -127,7 +127,7 @@ export const CreateGoalPage: React.FC = () => {
           />
 
           <Input
-            label="Initial contribution in dollars"
+            label="Initial Contribution in Dollars"
             type="number"
             min="0"
             value={initialDepositStr}
@@ -136,7 +136,7 @@ export const CreateGoalPage: React.FC = () => {
         </div>
 
         <Input
-          label="Target timeline in months"
+          label="Target Timeline in Months"
           type="number"
           min="1"
           max="60"
@@ -157,11 +157,10 @@ export const CreateGoalPage: React.FC = () => {
             variant="primary"
             disabled={!title.trim()}
           >
-            Create box and launch 3D view
+            Create Box and Launch 3D View
           </Button>
         </div>
       </form>
     </div>
   );
 };
-

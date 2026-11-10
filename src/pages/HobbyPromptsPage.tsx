@@ -18,13 +18,13 @@ export const HobbyPromptsPage: React.FC = () => {
   const getHobbyIcon = (cat: HobbyCategory) => {
     switch (cat) {
       case 'football':
-        return <FootballIcon size={18} className="text-neutral-400" />;
+        return <FootballIcon size={18} className="text-neutral-300" />;
       case 'basketball':
-        return <Basketball01Icon size={18} className="text-neutral-400" />;
+        return <Basketball01Icon size={18} className="text-neutral-300" />;
       case 'gaming':
-        return <GameController01Icon size={18} className="text-neutral-400" />;
+        return <GameController01Icon size={18} className="text-neutral-300" />;
       case 'crypto':
-        return <Coins01Icon size={18} className="text-neutral-400" />;
+        return <Coins01Icon size={18} className="text-neutral-300" />;
       default:
         return null;
     }
@@ -39,13 +39,21 @@ export const HobbyPromptsPage: React.FC = () => {
     }
   };
 
+  const categoryLabels: Record<string, string> = {
+    all: 'All',
+    football: 'Football',
+    basketball: 'Basketball',
+    gaming: 'Gaming',
+    crypto: 'Crypto',
+  };
+
   return (
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-3">
-        <h1 className="text-2xl font-light text-neutral-100 tracking-wide">
-          Hobby savings prompts
+        <h1 className="text-2xl text-neutral-100 tracking-wide">
+          Hobby Savings Prompts
         </h1>
-        <p className="text-sm font-light text-neutral-400 max-w-3xl leading-relaxed">
+        <p className="text-sm text-neutral-300 max-w-3xl leading-relaxed">
           Connect your daily passions to your savings habits. Receive voluntary nudges
           whenever your football club wins, your squad completes a game quest, or network milestones happen.
         </p>
@@ -53,10 +61,10 @@ export const HobbyPromptsPage: React.FC = () => {
 
       {/* Strict boundary notice */}
       <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col gap-2">
-        <span className="text-xs font-light text-neutral-300 tracking-wider">
-          Responsible financial design boundary
+        <span className="text-xs text-neutral-200 tracking-wider">
+          Responsible Financial Design Boundary
         </span>
-        <p className="text-xs font-light text-neutral-400 leading-relaxed">
+        <p className="text-xs text-neutral-300 leading-relaxed">
           These are voluntary savings reminders, not wagers or bets. You never risk money on match outcomes
           or token price movements. Every dollar you deposit remains one hundred percent your money,
           secured in your savings box and settled on Nimiq.
@@ -64,7 +72,7 @@ export const HobbyPromptsPage: React.FC = () => {
       </div>
 
       {actionNotice && (
-        <div className="bg-neutral-800 p-4 rounded-xl text-xs font-light text-neutral-200 text-center">
+        <div className="bg-neutral-800 p-4 rounded-xl text-xs text-neutral-200 text-center">
           {actionNotice}
         </div>
       )}
@@ -77,25 +85,25 @@ export const HobbyPromptsPage: React.FC = () => {
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 text-xs font-light tracking-wide transition-colors rounded-xl cursor-pointer ${
+              className={`px-4 py-2 text-xs tracking-wide transition-colors rounded-xl cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-neutral-100 text-neutral-950'
+                  ? 'bg-neutral-100 text-neutral-950 font-normal'
                   : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              {cat}
+              {categoryLabels[cat]}
             </button>
           ))}
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs font-light text-neutral-400">
-            Deposit target:
+          <span className="text-xs text-neutral-300">
+            Deposit Target:
           </span>
           <select
             value={targetGoalId}
             onChange={(e) => setTargetGoalId(e.target.value)}
-            className="bg-neutral-900 text-neutral-200 px-4 py-2 text-xs font-light rounded-xl outline-none cursor-pointer"
+            className="bg-neutral-900 text-neutral-200 px-4 py-2 text-xs rounded-xl outline-none cursor-pointer"
           >
             {goals.map((g) => (
               <option key={g.id} value={g.id}>
@@ -114,37 +122,37 @@ export const HobbyPromptsPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {getHobbyIcon(prompt.hobbyCategory)}
-                  <span className="text-xs font-light text-neutral-400 tracking-wider">
+                  <span className="text-xs text-neutral-300 tracking-wider capitalize">
                     {prompt.hobbyCategory}
                   </span>
                 </div>
-                <span className="text-xs font-light text-neutral-400">
+                <span className="text-xs text-neutral-300">
                   {prompt.teamOrTopic}
                 </span>
               </div>
 
-              <h3 className="text-base font-light text-neutral-100">
+              <h3 className="text-base text-neutral-100">
                 {prompt.title}
               </h3>
 
-              <p className="text-xs font-light text-neutral-400 leading-relaxed">
+              <p className="text-xs text-neutral-300 leading-relaxed">
                 {prompt.eventDescription}
               </p>
             </div>
 
             <div className="flex items-center justify-between pt-4">
               <div className="flex flex-col">
-                <span className="text-xs font-light text-neutral-400">
-                  Suggested boost
+                <span className="text-xs text-neutral-300">
+                  Suggested Boost
                 </span>
-                <span className="text-lg font-light text-neutral-100">
+                <span className="text-lg text-neutral-100">
                   ${prompt.suggestedAmount}
                 </span>
               </div>
 
               {prompt.completed ? (
-                <span className="text-xs font-light text-neutral-400">
-                  Contributed to goal
+                <span className="text-xs text-neutral-400">
+                  Contributed to Goal
                 </span>
               ) : (
                 <Button
