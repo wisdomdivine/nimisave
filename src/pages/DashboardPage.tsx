@@ -1,0 +1,338 @@
+import React, { useState } from 'react';
+import { useSavings } from '../context/SavingsContext';
+import { Card } from '../components/common/Card';
+import { Button } from '../components/common/Button';
+import { GoalCanvas } from '../components/three/GoalCanvas';
+import { DepositModal } from '../components/modals/DepositModal';
+import { WithdrawModal } from '../components/modals/WithdrawModal';
+import { PlusSignIcon, Coins01Icon, ArrowUpRight01Icon } from 'hugeicons-react';
+import { Link } from 'react-router-dom';
+
+export const DashboardPage: React.FC = () => {
+  const {
+    goals,
+    activeGoal,
+    setActiveGoalId,
+    prompts,
+    acceptPrompt,
+    dismissPrompt,
+    wallet,
+    transactions,
+  } = useSavings();
+
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [previewPercent, setPreviewPercent] = useState<number | null>(null);
+
+  const totalSaved = goals.reduce((sum, g) => sum + g.currentAmount, 0);
+  const totalTarget = goals.reduce((sum, g) => sum + g.targetAmount, 0);
+  const overallPercent = Math.round((totalSaved / totalTarget) * 100);
+
+  const currentGoalPercent = activeGoal
+    ? Math.min(100, Math.round((activeGoal.currentAmount / activeGoal.targetAmount) * 100))
+    : 0;
+
+  const displayPercent = previewPercent !== null ? previewPercent : currentGoalPercent;
+
+  const activePrompt = prompts.find((p) => !p.completed);
+
+  return (
+    <div className="flex flex-col gap-12">
+      {/* Top statistics summary */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <Card className="flex flex-col gap-2">
+          <span className="text-xs font-light text-neutral-400 tracking-wider">
+            Total funds saved
+          </span>
+          <div className="text-3xl font-light text-neutral-100">
+            ${totalSaved.toLocaleString()}
+          </div>
+          <span className="text-xs font-light text-neutral-400">
+            Across {goals.length} personal savings boxes
+          </span>
+        </Card>
+
+        <Card className="flex flex-col gap-2">
+          <span className="text-xs font-light text-neutral-400 tracking-wider">
+            Overall dream progress
+          </span>
+          <div className="text-3xl font-light text-neutral-100">
+            {overallPercent}%
+          </div>
+          <span className="text-xs font-light text-neutral-400">
+            ${(totalTarget - totalSaved).toLocaleString()} remaining to goals
+          </span>
+        </Card>
+
+        <Card className="flex flex-col gap-2">
+          <span className="text-xs font-light text-neutral-400 tracking-wider">
+            Emergency withdrawal access
+          </span>
+          <div className="text-3xl font-light text-neutral-100">
+            {wallet.freeEmergencyWithdrawalsRemaining} free passes
+          </div>
+          <span className="text-xs font-light text-neutral-400">
+            Capped fees if extra access is needed
+          </span>
+        </Card>
+      </section>
+
+      {/* Hobby prompt voluntary notification if active */}
+      {activePrompt && (
+        <div className="bg-neutral-900 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex flex-col gap-1 max-w-2xl">
+            <span className="text-xs font-light text-neutral-400 tracking-wider">
+              Voluntary hobby trigger ({activePrompt.teamOrTopic})
+            </span>
+            <p className="text-sm font-light text-neutral-200">
+              {activePrompt.eventDescription}
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => dismissPrompt(activePrompt.id)}
+            >
+              Dismiss
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                if (activeGoal) {
+                  acceptPrompt(activePrompt.id, activeGoal.id);
+                }
+              }}
+            >
+              Save ${activePrompt.suggestedAmount} now
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Featured 3D goal builder workspace */}
+      {activeGoal && (
+        <section className="bg-neutral-900 flex flex-col lg:flex-row items-stretch">
+          {/* 3D Canvas visual stage view */}
+          <div className="lg:w-7/12 relative flex flex-col">
+            <GoalCanvas category={activeGoal.category} progress={displayPercent} />
+
+            <div className="p-6 bg-neutral-900 flex flex-col gap-3">
+              <div className="flex items-center justify-between text-xs font-light text-neutral-400">
+                <span>Interactive build preview slider</span>
+                <span className="text-neutral-200">{displayPercent}% visual stage</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={displayPercent}
+                onChange={(e) => setPreviewPercent(Number(e.target.value))}
+                className="w-full accent-neutral-100 cursor-pointer bg-neutral-800 h-1"
+              />
+              <div className="flex justify-between text-xs font-light text-neutral-400">
+                <span>Ground work</span>
+                <span>Framing</span>
+                <span>Enclosure</span>
+                <span>Complete</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Goal details, action buttons and milestones */}
+          <div className="lg:w-5/12 p-8 flex flex-col justify-between gap-8 bg-neutral-900">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-light text-neutral-400 tracking-wider">
+                  Active visual goal
+                </span>
+                <span className="text-xs font-light text-neutral-400">
+                  Target ${activeGoal.targetAmount.toLocaleString()}
+                </span>
+              </div>
+
+              <h2 className="text-2xl font-light text-neutral-100 tracking-wide">
+                {activeGoal.title}
+              </h2>
+
+              <div className="flex items-baseline gap-3 pt-2">
+                <span className="text-3xl font-light text-neutral-100">
+                  ${activeGoal.currentAmount.toLocaleString()}
+                </span>
+                <span className="text-sm font-light text-neutral-400">
+                  saved ({currentGoalPercent}% completed)
+                </span>
+              </div>
+
+              <p className="text-xs font-light text-neutral-400 leading-relaxed pt-2">
+                Every contribution assembles new physical parts of your 3D asset.
+                Settled through Nimiq with zero gas cost.
+              </p>
+
+              {/* Milestones list */}
+              <div className="flex flex-col gap-3 pt-4">
+                <span className="text-xs font-light text-neutral-400 tracking-wider">
+                  Construction milestones
+                </span>
+                <div className="flex flex-col gap-2">
+                  {activeGoal.milestones.map((m) => {
+                    const isUnlocked = currentGoalPercent >= m.thresholdPercent;
+                    return (
+                      <div
+                        key={m.id}
+                        className={`p-3 flex items-center justify-between text-xs font-light transition-colors ${
+                          isUnlocked
+                            ? 'bg-neutral-800 text-neutral-100'
+                            : 'bg-neutral-950 text-neutral-400'
+                        }`}
+                      >
+                        <div className="flex flex-col gap-1">
+                          <span>{m.name}</span>
+                          <span className="text-neutral-400">{m.description}</span>
+                        </div>
+                        <span>{m.thresholdPercent}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick action buttons */}
+            <div className="flex items-center gap-4 pt-4">
+              <Button
+                variant="primary"
+                className="flex-1"
+                onClick={() => setIsDepositOpen(true)}
+              >
+                <PlusSignIcon size={16} className="mr-2" />
+                Contribute funds
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setIsWithdrawOpen(true)}
+              >
+                Withdraw
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Goal boxes list */}
+      <section className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-light tracking-wide text-neutral-100">
+            Your savings boxes
+          </h3>
+          <Link
+            to="/create"
+            className="flex items-center gap-2 text-xs font-light text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
+          >
+            <PlusSignIcon size={14} />
+            <span>New box</span>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {goals.map((g) => {
+            const pct = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
+            const isSelected = activeGoal?.id === g.id;
+
+            return (
+              <Card
+                key={g.id}
+                onClick={() => setActiveGoalId(g.id)}
+                className={`flex flex-col justify-between gap-6 cursor-pointer transition-colors ${
+                  isSelected ? 'bg-neutral-850' : 'bg-neutral-900 hover:bg-neutral-850'
+                }`}
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between text-xs font-light text-neutral-400">
+                    <span className="tracking-wider">{g.category}</span>
+                    <span>{pct}%</span>
+                  </div>
+                  <h4 className="text-base font-light text-neutral-100">
+                    {g.title}
+                  </h4>
+                  <div className="text-xl font-light text-neutral-100 pt-2">
+                    ${g.currentAmount.toLocaleString()}
+                  </div>
+                  <span className="text-xs font-light text-neutral-400">
+                    Goal of ${g.targetAmount.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 text-xs font-light text-neutral-400">
+                  <span>{isSelected ? 'Viewing in 3D' : 'Click to inspect in 3D'}</span>
+                  <ArrowUpRight01Icon size={14} />
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Recent Nimiq settlement transactions */}
+      <section className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-light tracking-wide text-neutral-100">
+            Recent settlement activity
+          </h3>
+          <Link
+            to="/wallet"
+            className="text-xs font-light text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
+          >
+            View all records
+          </Link>
+        </div>
+
+        <div className="bg-neutral-900 p-6 flex flex-col gap-3">
+          {transactions.slice(0, 4).map((tx) => (
+            <div
+              key={tx.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between py-3 gap-2 text-xs font-light text-neutral-300"
+            >
+              <div className="flex items-center gap-4">
+                <Coins01Icon size={16} className="text-neutral-400" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-neutral-100">{tx.goalTitle}</span>
+                  <span className="text-neutral-400">{tx.note || tx.type}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <span className="text-neutral-400 font-mono text-2xs truncate max-w-xs hidden md:inline">
+                  {tx.txHash.slice(0, 16)}...
+                </span>
+                <span className="text-neutral-400">{tx.date}</span>
+                <span
+                  className={
+                    tx.type === 'withdrawal'
+                      ? 'text-neutral-400'
+                      : 'text-neutral-100'
+                  }
+                >
+                  ${tx.amount} {tx.type === 'withdrawal' ? 'out' : 'in'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Modals */}
+      <DepositModal
+        isOpen={isDepositOpen}
+        onClose={() => setIsDepositOpen(false)}
+        goal={activeGoal}
+      />
+      <WithdrawModal
+        isOpen={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
+        goal={activeGoal}
+      />
+    </div>
+  );
+};
