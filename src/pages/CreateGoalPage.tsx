@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -60,7 +61,12 @@ export const CreateGoalPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-10 max-w-2xl mx-auto w-full">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-10 max-w-2xl mx-auto w-full"
+    >
       <div className="flex flex-col gap-3">
         <h1 className="text-2xl text-neutral-100">
           Create New Savings Box
@@ -161,6 +167,6 @@ export const CreateGoalPage: React.FC = () => {
           </Button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 };

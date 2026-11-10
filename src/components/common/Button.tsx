@@ -1,6 +1,7 @@
 import React from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
@@ -33,12 +34,13 @@ export const Button: React.FC<ButtonProps> = ({
   const disabledStyle = disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer';
 
   return (
-    <button
+    <motion.button
+      whileTap={disabled ? undefined : { scale: 0.98 }}
       className={`inline-flex items-center justify-center transition-colors rounded-xl ${sizeStyle} ${variantStyle} ${disabledStyle} ${className}`}
       disabled={disabled}
       {...props}
     >
       {children}
-    </button>
+    </motion.button>
   );
 };

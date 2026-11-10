@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -37,7 +38,12 @@ export const DashboardPage: React.FC = () => {
   const activePrompt = prompts.find((p) => !p.completed);
 
   return (
-    <div className="flex flex-col gap-12">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-12"
+    >
       {/* Top statistics summary */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <Card className="flex flex-col gap-2">
@@ -79,7 +85,11 @@ export const DashboardPage: React.FC = () => {
 
       {/* Hobby prompt voluntary notification if active */}
       {activePrompt && (
-        <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-neutral-900 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+        >
           <div className="flex flex-col gap-1 max-w-2xl">
             <span className="text-xs text-neutral-300">
               Voluntary Hobby Trigger ({activePrompt.teamOrTopic})
@@ -108,7 +118,7 @@ export const DashboardPage: React.FC = () => {
               Save ${activePrompt.suggestedAmount} Now
             </Button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Featured 3D goal builder workspace */}
@@ -243,34 +253,39 @@ export const DashboardPage: React.FC = () => {
             const isSelected = activeGoal?.id === g.id;
 
             return (
-              <Card
+              <motion.div
                 key={g.id}
-                onClick={() => setActiveGoalId(g.id)}
-                className={`flex flex-col justify-between gap-6 cursor-pointer transition-colors ${
-                  isSelected ? 'bg-neutral-850' : 'bg-neutral-900 hover:bg-neutral-850'
-                }`}
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.15 }}
               >
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between text-xs text-neutral-300">
-                    <span className="capitalize">{g.category}</span>
-                    <span>{pct}%</span>
+                <Card
+                  onClick={() => setActiveGoalId(g.id)}
+                  className={`flex flex-col justify-between gap-6 cursor-pointer transition-colors ${
+                    isSelected ? 'bg-neutral-850' : 'bg-neutral-900 hover:bg-neutral-850'
+                  }`}
+                >
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between text-xs text-neutral-300">
+                      <span className="capitalize">{g.category}</span>
+                      <span>{pct}%</span>
+                    </div>
+                    <h4 className="text-base text-neutral-100">
+                      {g.title}
+                    </h4>
+                    <div className="text-xl text-neutral-100 pt-2">
+                      ${g.currentAmount.toLocaleString()}
+                    </div>
+                    <span className="text-xs text-neutral-300">
+                      Goal of ${g.targetAmount.toLocaleString()}
+                    </span>
                   </div>
-                  <h4 className="text-base text-neutral-100">
-                    {g.title}
-                  </h4>
-                  <div className="text-xl text-neutral-100 pt-2">
-                    ${g.currentAmount.toLocaleString()}
-                  </div>
-                  <span className="text-xs text-neutral-300">
-                    Goal of ${g.targetAmount.toLocaleString()}
-                  </span>
-                </div>
 
-                <div className="flex items-center justify-between pt-4 text-xs text-neutral-300">
-                  <span>{isSelected ? 'Viewing in 3D' : 'Click to Inspect in 3D'}</span>
-                  <ArrowUpRight01Icon size={14} />
-                </div>
-              </Card>
+                  <div className="flex items-center justify-between pt-4 text-xs text-neutral-300">
+                    <span>{isSelected ? 'Viewing in 3D' : 'Click to Inspect in 3D'}</span>
+                    <ArrowUpRight01Icon size={14} />
+                  </div>
+                </Card>
+              </motion.div>
             );
           })}
         </div>
@@ -335,6 +350,6 @@ export const DashboardPage: React.FC = () => {
         onClose={() => setIsWithdrawOpen(false)}
         goal={activeGoal}
       />
-    </div>
+    </motion.div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Cancel01Icon } from 'hugeicons-react';
 
 interface ModalProps {
@@ -23,27 +24,41 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-none">
-      <div className="w-full max-w-lg bg-neutral-900 p-8 rounded-3xl flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg text-neutral-100">
-            {title}
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-100 p-2 rounded-xl cursor-pointer transition-colors"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="w-full max-w-lg bg-neutral-900 p-8 rounded-3xl flex flex-col gap-6"
           >
-            <Cancel01Icon size={18} />
-          </button>
-        </div>
-        <div>
-          {children}
-        </div>
-      </div>
-    </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg text-neutral-100">
+                {title}
+              </h3>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-neutral-400 hover:text-neutral-100 p-2 rounded-xl cursor-pointer transition-colors"
+              >
+                <Cancel01Icon size={18} />
+              </button>
+            </div>
+            <div>
+              {children}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -18,7 +19,12 @@ export const WalletPage: React.FC = () => {
   const usdValue = nimToUsd(wallet.balanceNim);
 
   return (
-    <div className="flex flex-col gap-10">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-10"
+    >
       <div className="flex flex-col gap-3">
         <h1 className="text-2xl text-neutral-100">
           Nimiq Settlement Wallet
@@ -146,6 +152,6 @@ export const WalletPage: React.FC = () => {
           ))}
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
