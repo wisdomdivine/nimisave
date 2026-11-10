@@ -25,12 +25,19 @@ export const HobbyPromptsPage: React.FC = () => {
     selectedHobby,
     selectedTopic,
     setHobbyPreference,
+    openCreateGoal,
   } = useSavings();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [targetGoalId, setTargetGoalId] = useState<string>(goals[0]?.id || '');
   const [actionNotice, setActionNotice] = useState<string>('');
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (!targetGoalId && goals.length > 0) {
+      setTargetGoalId(goals[0].id);
+    }
+  }, [goals, targetGoalId]);
 
   const popularTopics = useMemo(() => {
     const popular = getPopularTopics(selectedHobby).map((t) => t.name);
@@ -91,7 +98,10 @@ export const HobbyPromptsPage: React.FC = () => {
   };
 
   const handleTrigger = async (promptId: string) => {
-    if (!targetGoalId) return;
+    if (!targetGoalId) {
+      openCreateGoal();
+      return;
+    }
     const ok = await acceptPrompt(promptId, targetGoalId);
     if (ok) {
       setActionNotice('Savings prompt accepted and deposited into your selected box');
@@ -229,16 +239,22 @@ export const HobbyPromptsPage: React.FC = () => {
             Where your accepted prompt contributions will be deposited
           </span>
         </div>
-        <div className="w-full sm:w-72">
-          <Select
-            label=""
-            value={targetGoalId}
-            onChange={(val) => setTargetGoalId(val)}
-            options={goals.map((g) => ({
-              value: g.id,
-              label: `${g.title} (${formatAmount(g.currentAmount, g.currency)})`,
-            }))}
-          />
+        <div className="w-full sm:w-72 flex justify-end">
+          {goals.length > 0 ? (
+            <Select
+              label=""
+              value={targetGoalId}
+              onChange={(val) => setTargetGoalId(val)}
+              options={goals.map((g) => ({
+                value: g.id,
+                label: `${g.title} (${formatAmount(g.currentAmount, g.currency)})`,
+              }))}
+            />
+          ) : (
+            <Button variant="secondary" size="sm" onClick={openCreateGoal}>
+              Create Goal Box
+            </Button>
+          )}
         </div>
       </div>
 
@@ -292,7 +308,7 @@ export const HobbyPromptsPage: React.FC = () => {
                     {prompt.hobbyCategory}
                   </span>
                 </div>
-                <span className="text-2xs px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-300">
+                <span className="text-xs text-neutral-400">
                   {prompt.teamOrTopic}
                 </span>
               </div>

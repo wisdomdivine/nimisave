@@ -243,7 +243,7 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
                 Zero Gas Micro Settlements
               </span>
               <p className="text-2xs text-neutral-400 leading-relaxed font-light">
-                Every deposit triggers physical construction in your 3D view. All network settlement fees are covered by Nimisave relayer.
+                Every deposit triggers physical construction in your 3D view. All network settlement fees are fully covered with zero gas.
               </p>
             </div>
           </div>
@@ -349,15 +349,6 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={
-                category === 'house'
-                  ? 'For example Modern Mountain Sanctuary'
-                  : category === 'car'
-                  ? 'For example Electric Performance Sport'
-                  : category === 'trip'
-                  ? 'For example Tokyo and Kyoto Journey'
-                  : 'For example High Security Emergency Reserve'
-              }
             />
 
             {/* Financial Amounts Row */}

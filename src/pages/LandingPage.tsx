@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Logo } from '../components/common/Logo';
@@ -7,6 +7,24 @@ import { Sun01Icon, Moon02Icon } from 'hugeicons-react';
 
 export const LandingPage: React.FC = () => {
   const { openConnectModal, isWalletConnected, wallet, theme, toggleTheme } = useSavings();
+  const navigate = useNavigate();
+  const [pendingEnterDashboard, setPendingEnterDashboard] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isWalletConnected && pendingEnterDashboard) {
+      setPendingEnterDashboard(false);
+      navigate('/dashboard');
+    }
+  }, [isWalletConnected, pendingEnterDashboard, navigate]);
+
+  const handleEnterDashboard = () => {
+    if (isWalletConnected) {
+      navigate('/dashboard');
+    } else {
+      setPendingEnterDashboard(true);
+      openConnectModal();
+    }
+  };
 
   const shortAddress = React.useMemo(() => {
     if (!wallet.nimiqAddress) return '';
@@ -22,29 +40,26 @@ export const LandingPage: React.FC = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-3 sm:gap-4 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full backdrop-blur-md shadow-sm bg-neutral-900/90 text-neutral-200"
+          className="inline-flex items-center gap-3 sm:gap-4 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full backdrop-blur-md bg-neutral-900/90 text-neutral-200"
         >
           {/* Brand Logo */}
           <Link
             to="/"
-            className="p-0.5 text-white hover:text-neutral-300 transition-colors cursor-pointer flex items-center gap-2"
+            className="p-0.5 text-neutral-100 hover:text-neutral-300 transition-colors cursor-pointer flex items-center gap-2"
             title="Nimisave"
           >
-            <Logo size={19} className="text-white" />
-            <span className="font-light text-xs text-neutral-200 hidden sm:inline">
+            <Logo size={19} className="text-current" />
+            <span className="font-light text-xs hidden sm:inline">
               Nimisave
             </span>
           </Link>
-
-          {/* Divider */}
-          <div className="w-px h-4 sm:h-5 bg-neutral-800" />
 
           {/* X (Twitter) */}
           <a
             href="https://x.com/nimiq"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+            className="p-1 rounded-full text-neutral-400 hover:text-neutral-100 transition-colors cursor-pointer flex items-center justify-center"
             title="X (Twitter)"
           >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -57,7 +72,7 @@ export const LandingPage: React.FC = () => {
             href="https://github.com/wisdomdivine/nimisave"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+            className="p-1 rounded-full text-neutral-400 hover:text-neutral-100 transition-colors cursor-pointer flex items-center justify-center"
             title="GitHub"
           >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -70,9 +85,10 @@ export const LandingPage: React.FC = () => {
           </a>
 
           {/* Document / App Overview */}
-          <Link
-            to="/dashboard"
-            className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+          <button
+            type="button"
+            onClick={handleEnterDashboard}
+            className="p-1 rounded-full text-neutral-400 hover:text-neutral-100 transition-colors cursor-pointer flex items-center justify-center"
             title="Dashboard Overview"
           >
             <svg className="w-4 h-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
@@ -82,27 +98,24 @@ export const LandingPage: React.FC = () => {
                 d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
               />
             </svg>
-          </Link>
+          </button>
 
           {/* Theme Toggle */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+            className="p-1 rounded-full text-neutral-400 hover:text-neutral-100 transition-colors cursor-pointer flex items-center justify-center"
             title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             aria-label="Toggle theme"
           >
             {theme === 'light' ? <Moon02Icon size={16} /> : <Sun01Icon size={16} />}
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-4 sm:h-5 bg-neutral-800" />
-
           {/* Connect Wallet Button */}
           <button
             type="button"
             onClick={openConnectModal}
-            className="px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap shadow-sm bg-white text-neutral-950 hover:bg-neutral-200"
+            className="px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap bg-neutral-100 text-neutral-950 hover:bg-neutral-200"
           >
             {isWalletConnected ? shortAddress : 'Connect Wallet'}
           </button>
@@ -118,9 +131,14 @@ export const LandingPage: React.FC = () => {
           className="w-full flex justify-center py-2 sm:py-3"
         >
           <img
+            src="/illustration-windows-light.png"
+            alt="Passengers on a savings journey"
+            className="illustration-windows-light w-full max-w-md sm:max-w-lg md:max-w-xl max-h-[30vh] sm:max-h-[34vh] object-contain select-none"
+          />
+          <img
             src="/illustration-windows-dark.png"
             alt="Passengers on a savings journey"
-            className="w-full max-w-md sm:max-w-lg md:max-w-xl max-h-[30vh] sm:max-h-[34vh] object-contain select-none"
+            className="illustration-windows-dark w-full max-w-md sm:max-w-lg md:max-w-xl max-h-[30vh] sm:max-h-[34vh] object-contain select-none"
           />
         </motion.div>
 
@@ -132,13 +150,13 @@ export const LandingPage: React.FC = () => {
           className="flex flex-col items-center text-center gap-2.5 sm:gap-3.5 max-w-xl px-2"
         >
           <div className="flex items-center gap-2 text-neutral-400">
-            <Logo size={16} className="text-neutral-300" />
+            <Logo size={16} className="text-current" />
             <span className="text-xs font-light tracking-widest uppercase text-neutral-400">
               Nimisave
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-tight text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-tight text-neutral-100">
             Disciplined savings for life ahead
           </h1>
 
@@ -149,12 +167,13 @@ export const LandingPage: React.FC = () => {
 
           {/* Enter Dashboard Button */}
           <div className="pt-2">
-            <Link
-              to="/dashboard"
-              className="inline-block bg-white text-neutral-950 hover:bg-neutral-200 px-7 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-colors text-center cursor-pointer shadow-sm"
+            <button
+              type="button"
+              onClick={handleEnterDashboard}
+              className="inline-block bg-neutral-100 text-neutral-950 hover:bg-neutral-200 px-7 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-colors text-center cursor-pointer"
             >
-              Enter Dashboard
-            </Link>
+              {isWalletConnected ? 'Enter Dashboard' : 'Connect Wallet to Enter'}
+            </button>
           </div>
         </motion.div>
       </main>

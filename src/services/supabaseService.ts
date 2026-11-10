@@ -15,7 +15,7 @@ export async function fetchRemoteGoals(walletAddress: string): Promise<SavingsGo
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.warn('Supabase fetchRemoteGoals notice:', error.message);
+      console.warn('Sync notice:', error.message);
       return null;
     }
 
@@ -34,7 +34,7 @@ export async function fetchRemoteGoals(walletAddress: string): Promise<SavingsGo
       milestones: Array.isArray(row.milestones) ? row.milestones : [],
     }));
   } catch (err) {
-    console.warn('Supabase fetchRemoteGoals exception:', err);
+    console.warn('Sync error:', err);
     return null;
   }
 }
@@ -61,12 +61,12 @@ export async function upsertRemoteGoal(walletAddress: string, goal: SavingsGoal)
     });
 
     if (error) {
-      console.warn('Supabase upsertRemoteGoal notice:', error.message);
+      console.warn('Sync notice:', error.message);
       return false;
     }
     return true;
   } catch (err) {
-    console.warn('Supabase upsertRemoteGoal exception:', err);
+    console.warn('Sync error:', err);
     return false;
   }
 }
@@ -87,12 +87,12 @@ export async function updateRemoteGoalAmount(goalId: string, currentAmount: numb
       .eq('id', goalId);
 
     if (error) {
-      console.warn('Supabase updateRemoteGoalAmount notice:', error.message);
+      console.warn('Sync notice:', error.message);
       return false;
     }
     return true;
   } catch (err) {
-    console.warn('Supabase updateRemoteGoalAmount exception:', err);
+    console.warn('Sync error:', err);
     return false;
   }
 }
@@ -111,7 +111,7 @@ export async function fetchRemoteTransactions(walletAddress: string): Promise<Tr
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.warn('Supabase fetchRemoteTransactions notice:', error.message);
+      console.warn('Sync notice:', error.message);
       return null;
     }
 
@@ -133,7 +133,7 @@ export async function fetchRemoteTransactions(walletAddress: string): Promise<Tr
       note: row.note,
     }));
   } catch (err) {
-    console.warn('Supabase fetchRemoteTransactions exception:', err);
+    console.warn('Sync error:', err);
     return null;
   }
 }
@@ -163,23 +163,25 @@ export async function insertRemoteTransaction(walletAddress: string, tx: Transac
     });
 
     if (error) {
-      console.warn('Supabase insertRemoteTransaction notice:', error.message);
+      console.warn('Sync notice:', error.message);
       return false;
     }
     return true;
   } catch (err) {
-    console.warn('Supabase insertRemoteTransaction exception:', err);
+    console.warn('Sync error:', err);
     return false;
   }
 }
 
 /**
- * Fetch user profile preferences and streak from Supabase.
+ * Fetch user profile preferences and streak from live database.
  */
 export async function fetchRemoteUserProfile(walletAddress: string): Promise<{
   hobby?: HobbyCategory;
   topic?: string;
   streak?: SavingsStreakInfo;
+  freeEmergencyWithdrawalsRemaining?: number;
+  sponsoredTxCount?: number;
 } | null> {
   if (!isSupabaseConfigured() || !supabase) return null;
 
@@ -191,7 +193,7 @@ export async function fetchRemoteUserProfile(walletAddress: string): Promise<{
       .maybeSingle();
 
     if (error) {
-      console.warn('Supabase fetchRemoteUserProfile notice:', error.message);
+      console.warn('Sync notice:', error.message);
       return null;
     }
 
@@ -201,20 +203,28 @@ export async function fetchRemoteUserProfile(walletAddress: string): Promise<{
       hobby: data.selected_hobby as HobbyCategory,
       topic: data.selected_topic,
       streak: {
-        currentDays: data.streak_current_days,
-        longestDays: data.streak_longest_days,
+        currentDays: Number(data.streak_current_days || 0),
+        longestDays: Number(data.streak_longest_days || 0),
         lastDepositDate: data.streak_last_deposit_date || '',
         freezesRemaining: 2,
       },
+      freeEmergencyWithdrawalsRemaining:
+        typeof data.free_emergency_withdrawals_remaining === 'number'
+          ? data.free_emergency_withdrawals_remaining
+          : 3,
+      sponsoredTxCount:
+        typeof data.sponsored_tx_count === 'number'
+          ? data.sponsored_tx_count
+          : 0,
     };
   } catch (err) {
-    console.warn('Supabase fetchRemoteUserProfile exception:', err);
+    console.warn('Sync error:', err);
     return null;
   }
 }
 
 /**
- * Upsert user profile preferences and streak in Supabase.
+ * Upsert user profile preferences and streak in live database.
  */
 export async function upsertRemoteUserProfile(
   walletAddress: string,
@@ -222,6 +232,8 @@ export async function upsertRemoteUserProfile(
     hobby?: HobbyCategory;
     topic?: string;
     streak?: SavingsStreakInfo;
+    freeEmergencyWithdrawalsRemaining?: number;
+    sponsoredTxCount?: number;
   }
 ): Promise<boolean> {
   if (!isSupabaseConfigured() || !supabase) return false;
@@ -239,17 +251,171 @@ export async function upsertRemoteUserProfile(
       payload.streak_longest_days = profile.streak.longestDays;
       payload.streak_last_deposit_date = profile.streak.lastDepositDate;
     }
+    if (typeof profile.freeEmergencyWithdrawalsRemaining === 'number') {
+      payload.free_emergency_withdrawals_remaining = profile.freeEmergencyWithdrawalsRemaining;
+    }
+    if (typeof profile.sponsoredTxCount === 'number') {
+      payload.sponsored_tx_count = profile.sponsoredTxCount;
+    }
 
     const { error } = await supabase.from('user_profiles').upsert(payload);
 
     if (error) {
-      console.warn('Supabase upsertRemoteUserProfile notice:', error.message);
+      console.warn('Sync notice:', error.message);
       return false;
     }
     return true;
   } catch (err) {
-    console.warn('Supabase upsertRemoteUserProfile exception:', err);
+    console.warn('Sync error:', err);
     return false;
+  }
+}
+
+/**
+ * Fetch voluntary prompts for a wallet address from live database.
+ */
+export async function fetchRemotePrompts(walletAddress: string): Promise<HobbyPrompt[] | null> {
+  if (!isSupabaseConfigured() || !supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('*')
+      .eq('wallet_address', walletAddress)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.warn('Sync notice:', error.message);
+      return null;
+    }
+
+    if (!data) return null;
+
+    return data.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      hobbyCategory: row.hobby_category as HobbyCategory,
+      eventDescription: row.event_description,
+      suggestedAmount: Number(row.suggested_amount),
+      currency: row.currency,
+      teamOrTopic: row.team_or_topic,
+      completed: Boolean(row.completed),
+    }));
+  } catch (err) {
+    console.warn('Sync error:', err);
+    return null;
+  }
+}
+
+/**
+ * Upsert voluntary prompts for a wallet address in live database.
+ */
+export async function upsertRemotePrompts(
+  walletAddress: string,
+  prompts: HobbyPrompt[]
+): Promise<boolean> {
+  if (!isSupabaseConfigured() || !supabase || prompts.length === 0) return false;
+
+  try {
+    const rows = prompts.map((p) => ({
+      id: `${walletAddress}_${p.id}`,
+      wallet_address: walletAddress,
+      title: p.title,
+      hobby_category: p.hobbyCategory,
+      event_description: p.eventDescription,
+      suggested_amount: p.suggestedAmount,
+      currency: p.currency,
+      team_or_topic: p.teamOrTopic,
+      completed: p.completed,
+    }));
+
+    const { error } = await supabase.from('prompts').upsert(rows);
+    if (error) {
+      console.warn('Sync notice:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Sync error:', err);
+    return false;
+  }
+}
+
+/**
+ * Delete a prompt from live database.
+ */
+export async function deleteRemotePrompt(walletAddress: string, promptId: string): Promise<boolean> {
+  if (!isSupabaseConfigured() || !supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from('prompts')
+      .delete()
+      .in('id', [promptId, `${walletAddress}_${promptId}`])
+      .eq('wallet_address', walletAddress);
+
+    if (error) {
+      console.warn('Sync notice:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Sync error:', err);
+    return false;
+  }
+}
+
+export interface LiveCommunityAggregation {
+  profiles: {
+    walletAddress: string;
+    hobby: HobbyCategory;
+    topic: string;
+    streakDays: number;
+  }[];
+  walletTotalsUsdt: Record<string, number>;
+}
+
+/**
+ * Fetch real community members and real savings totals from live database.
+ */
+export async function fetchLiveCommunityAggregation(
+  nimPriceUsd: number = 0.0035
+): Promise<LiveCommunityAggregation | null> {
+  if (!isSupabaseConfigured() || !supabase) return null;
+
+  try {
+    const [profilesRes, goalsRes] = await Promise.all([
+      supabase.from('user_profiles').select('wallet_address, selected_hobby, selected_topic, streak_current_days'),
+      supabase.from('goals').select('wallet_address, current_amount, currency'),
+    ]);
+
+    if (profilesRes.error || goalsRes.error) {
+      return null;
+    }
+
+    const walletTotalsUsdt: Record<string, number> = {};
+    for (const g of goalsRes.data || []) {
+      const addr = String(g.wallet_address || '').toLowerCase();
+      if (!addr) continue;
+      const amt = Number(g.current_amount || 0);
+      const usdtVal = g.currency === 'NIM' ? amt * nimPriceUsd : amt;
+      walletTotalsUsdt[addr] = (walletTotalsUsdt[addr] || 0) + usdtVal;
+    }
+
+    const profiles = (profilesRes.data || []).map((p: any) => ({
+      walletAddress: String(p.wallet_address || ''),
+      hobby: (p.selected_hobby as HobbyCategory) || 'football',
+      topic: String(p.selected_topic || 'Arsenal'),
+      streakDays: Number(p.streak_current_days || 0),
+    }));
+
+    return {
+      profiles,
+      walletTotalsUsdt,
+    };
+  } catch (err) {
+    console.warn('Sync error:', err);
+    return null;
   }
 }
 

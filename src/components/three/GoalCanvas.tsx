@@ -92,7 +92,7 @@ export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) =>
 
   const fallbackStage = (
     <div data-testid="goal-canvas-fallback" className="w-full h-full flex flex-col items-center justify-center gap-4 bg-neutral-900 p-8 select-none">
-      <div className="w-24 h-24 rounded-full bg-neutral-950 flex items-center justify-center shadow-inner">
+      <div className="w-24 h-24 rounded-full bg-neutral-950 flex items-center justify-center">
         {getCategoryIcon()}
       </div>
       <div className="flex flex-col items-center gap-1">

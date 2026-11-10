@@ -13,14 +13,18 @@ interface DepositModalProps {
 }
 
 export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goal }) => {
-  const { deposit } = useSavings();
+  const { deposit, wallet } = useSavings();
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(goal?.currency || 'USDT');
   const [amount, setAmount] = useState<number>(goal?.currency === 'NIM' ? 10000 : 25);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   if (!goal) return null;
+
+  const availableBalance =
+    selectedCurrency === 'USDT' ? wallet.balanceUsdt : wallet.balanceNim;
 
   const quickUsdtAmounts = [10, 25, 50, 100, 250];
   const quickNimAmounts = [2500, 5000, 10000, 25000, 50000];
@@ -60,6 +64,14 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
     e.preventDefault();
     if (amount <= 0) return;
 
+    if (amount > availableBalance) {
+      setErrorMessage(
+        `Deposit exceeds available balance of ${selectedCurrency === 'USDT' ? '$' : ''}${availableBalance.toLocaleString()} ${selectedCurrency}.`
+      );
+      return;
+    }
+
+    setErrorMessage('');
     setIsSubmitting(true);
     setSuccessMessage('');
 
@@ -74,6 +86,9 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
           setIsSubmitting(false);
           onClose();
         }, 1200);
+      } else {
+        setIsSubmitting(false);
+        setErrorMessage('Insufficient available balance for this deposit.');
       }
     } catch {
       setIsSubmitting(false);
@@ -143,17 +158,34 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
           </div>
         </div>
 
-        <Input
-          label={`Or enter custom amount in ${selectedCurrency}`}
-          type="number"
-          min="1"
-          step="any"
-          prefixText={selectedCurrency === 'USDT' ? '$' : ''}
-          suffixText={selectedCurrency}
-          value={customAmount}
-          onChange={handleCustomChange}
-          placeholder={selectedCurrency === 'USDT' ? 'For example 75' : 'For example 15000'}
-        />
+        <div className="flex flex-col gap-1">
+          <Input
+            label={`Or enter custom amount in ${selectedCurrency}`}
+            type="number"
+            min="1"
+            step="any"
+            prefixText={selectedCurrency === 'USDT' ? '$' : ''}
+            suffixText={selectedCurrency}
+            value={customAmount}
+            onChange={(e) => {
+              handleCustomChange(e);
+              setErrorMessage('');
+            }}
+          />
+          <div className="flex items-center justify-between text-xs text-neutral-400 mt-1 px-1 font-light">
+            <span>Available balance:</span>
+            <span className={availableBalance > 0 ? 'text-neutral-200' : 'text-neutral-400'}>
+              {selectedCurrency === 'USDT'
+                ? `$${wallet.balanceUsdt.toLocaleString()} USDT`
+                : `${wallet.balanceNim.toLocaleString()} NIM`}
+            </span>
+          </div>
+          {errorMessage && (
+            <div className="text-xs text-rose-400 mt-1 px-1 font-light">
+              {errorMessage}
+            </div>
+          )}
+        </div>
 
         <div className="bg-neutral-950 p-4 sm:p-5 rounded-2xl flex flex-col gap-2">
           <div className="flex justify-between text-xs text-neutral-400">

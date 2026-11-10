@@ -54,7 +54,7 @@ export const WalletPage: React.FC = () => {
             <span className="text-xs text-neutral-300">
               Native NIM Holdings
             </span>
-            <Coins01Icon size={16} className="text-amber-400" />
+            <Coins01Icon size={16} className="text-neutral-300" />
           </div>
           <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
             {nimBalance.toLocaleString()} NIM
@@ -69,7 +69,7 @@ export const WalletPage: React.FC = () => {
             <span className="text-xs text-neutral-300">
               Stable USDT Reserves
             </span>
-            <Wallet01Icon size={16} className="text-emerald-400" />
+            <Wallet01Icon size={16} className="text-neutral-300" />
           </div>
           <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
             ${usdtBalance.toLocaleString()} USDT
@@ -155,7 +155,7 @@ export const WalletPage: React.FC = () => {
           <div className="bg-neutral-950 p-4 rounded-xl flex flex-col gap-1.5">
             <span className="text-xs text-neutral-200 font-medium">Zero Gas Cost</span>
             <p className="text-2xs text-neutral-400 font-light leading-relaxed">
-              Nimisave relayers sponsor PoS validator fees so you never pay gas to deposit or build toward your goals.
+              Nimisave covers all network validator fees so you never pay gas to deposit or build toward your goals.
             </p>
           </div>
           <div className="bg-neutral-950 p-4 rounded-xl flex flex-col gap-1.5">

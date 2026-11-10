@@ -186,6 +186,18 @@ async function runTestSuite() {
       return xLink !== null && gitLink !== null;
     });
     assert(linksExist, 'Social links (X / Twitter and GitHub) are present');
+
+    // Verify strict authentication gate ("No account, no dashboard access")
+    await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 600));
+    const unauthCheck = await page.evaluate(() => {
+      return {
+        pathname: window.location.pathname,
+        hasDummyData: document.body.innerText.includes('Modern Dream House') || document.body.innerText.includes('176,025')
+      };
+    });
+    assert(unauthCheck.pathname === '/', 'Unauthenticated /dashboard navigation strictly redirects to / (No account, no dashboard access)');
+    assert(!unauthCheck.hasDummyData, 'Zero dummy data exposed to unauthenticated visitors');
   } catch (err) {
     assert(false, `Landing page test error: ${err.message}`);
   }
@@ -274,6 +286,18 @@ async function runTestSuite() {
       return cards.length >= 3;
     });
     assert(hasCards, 'Statistics cards and Goal Box containers rendered');
+
+    const zeroDummies = await page.evaluate(() => {
+      const text = document.body.innerText;
+      return (
+        !text.includes('Modern Dream House') &&
+        !text.includes('Tokyo and Kyoto Journey') &&
+        !text.includes('Electric Performance Car') &&
+        !text.includes('Perpetual Reserve Vault') &&
+        !text.includes('176,025')
+      );
+    });
+    assert(zeroDummies, 'Zero dummy goals or fake preset balances exist on Dashboard');
   } catch (err) {
     assert(false, `Dashboard test error: ${err.message}`);
   }
@@ -368,6 +392,12 @@ async function runTestSuite() {
       return cards.length;
     });
     assert(clubCardsCount >= 2, `Community clubs and collective pools rendered (${clubCardsCount} cards)`);
+
+    const zeroDummyLeaderboards = await page.evaluate(() => {
+      const text = document.body.innerText;
+      return !text.includes('BukayoSaver') && !text.includes('ThierryNIM') && !text.includes('142,500');
+    });
+    assert(zeroDummyLeaderboards, 'Zero dummy community savers or fake pool totals exist on Communities');
   } catch (err) {
     assert(false, `Communities page test error: ${err.message}`);
   }
@@ -411,6 +441,8 @@ async function runTestSuite() {
     let totalPipeViolations = 0;
     let totalBulletViolations = 0;
     let totalBorderViolations = 0;
+    let totalArchitectureLeaks = 0;
+    let totalMulticolorCardClasses = 0;
 
     const emojiRegex = /[\u{1F300}-\u{1F9FF}|\u{2600}-\u{26FF}|\u{2700}-\u{27BF}]/u;
 
@@ -426,6 +458,8 @@ async function runTestSuite() {
         const hasEmDash = text.includes('—') || text.includes('–');
         const hasPipe = text.includes('|');
         const hasBullet = text.includes('•') || text.includes('·');
+        const hasArchLeak = text.includes('Supabase') || text.includes('Iron encrypted');
+        const multicolorEls = document.querySelectorAll('.stat-card-amber, .stat-card-mint, .stat-card-sky, .stat-card-purple, .hobby-btn-amber, .hobby-btn-mint, .hobby-btn-sky, .hobby-btn-purple');
 
         const allElements = document.querySelectorAll('*');
         let borderCount = 0;
@@ -442,13 +476,23 @@ async function runTestSuite() {
           }
         }
 
-        return { hasEmojis, hasEmDash, hasPipe, hasBullet, borderCount };
+        return {
+          hasEmojis,
+          hasEmDash,
+          hasPipe,
+          hasBullet,
+          borderCount,
+          hasArchLeak,
+          multicolorCount: multicolorEls.length
+        };
       }, emojiRegex.source);
 
       if (pageAudit.hasEmojis) totalEmojiViolations++;
       if (pageAudit.hasEmDash) totalEmDashViolations++;
       if (pageAudit.hasPipe) totalPipeViolations++;
       if (pageAudit.hasBullet) totalBulletViolations++;
+      if (pageAudit.hasArchLeak) totalArchitectureLeaks++;
+      totalMulticolorCardClasses += pageAudit.multicolorCount;
       totalBorderViolations += pageAudit.borderCount;
     }
 
@@ -457,6 +501,8 @@ async function runTestSuite() {
     assert(totalPipeViolations === 0, `Constraint: ZERO pipe dividers (|) across all pages (violations: ${totalPipeViolations})`);
     assert(totalBulletViolations === 0, `Constraint: ZERO bullet dividers across all pages (violations: ${totalBulletViolations})`);
     assert(totalBorderViolations === 0, `Constraint: ZERO visible borders anywhere (violations: ${totalBorderViolations})`);
+    assert(totalArchitectureLeaks === 0, `Constraint: ZERO internal architecture leaks across all pages (violations: ${totalArchitectureLeaks})`);
+    assert(totalMulticolorCardClasses === 0, `Constraint: Harmonized card colors across all pages (non-harmonized elements: ${totalMulticolorCardClasses})`);
   } catch (err) {
     assert(false, `Design constraints audit error: ${err.message}`);
   }
@@ -656,6 +702,27 @@ async function runTestSuite() {
   }
 
   await browser.close();
+
+  // Clean up test wallet data created during E2E run so production DB stays clean
+  try {
+    const envPath = path.join(__dirname, '..', '.env');
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      const urlMatch = envContent.match(/VITE_SUPABASE_URL=(.+)/);
+      const keyMatch = envContent.match(/VITE_SUPABASE_ANON_KEY=(.+)/);
+      if (urlMatch && keyMatch) {
+        const sbUrl = urlMatch[1].trim();
+        const sbKey = keyMatch[1].trim();
+        const testAddr = '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b';
+        const headers = { apikey: sbKey, Authorization: `Bearer ${sbKey}` };
+        await fetch(`${sbUrl}/rest/v1/goals?wallet_address=eq.${testAddr}`, { method: 'DELETE', headers });
+        await fetch(`${sbUrl}/rest/v1/transactions?wallet_address=eq.${testAddr}`, { method: 'DELETE', headers });
+        await fetch(`${sbUrl}/rest/v1/user_profiles?wallet_address=eq.${testAddr}`, { method: 'DELETE', headers });
+      }
+    }
+  } catch {
+    // Non-fatal cleanup
+  }
 
   // ===========================================================================
   // TEST SUMMARY REPORT

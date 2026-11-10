@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import {
   SavingsGoal,
   GoalMilestone,
@@ -6,17 +6,17 @@ import {
   HobbyPrompt,
   WalletInfo,
   Currency,
-  GoalType,
   HobbyCategory,
   SavingsStreakInfo,
   SavingsCommunity,
+  CommunityLeaderboardEntry,
 } from '../types';
 import {
   executeSettlement,
-  simulateNimiqSettlement,
   calculateWithdrawalDetails,
   usdtToNim,
   nimToUsdt,
+  formatNimiqAddress,
 } from '../services/nimiqService';
 import {
   fetchRemoteGoals,
@@ -26,13 +26,13 @@ import {
   insertRemoteTransaction,
   fetchRemoteUserProfile,
   upsertRemoteUserProfile,
+  fetchRemotePrompts,
+  upsertRemotePrompts,
+  deleteRemotePrompt,
+  fetchLiveCommunityAggregation,
+  LiveCommunityAggregation,
 } from '../services/supabaseService';
 import { isSupabaseConfigured } from '../lib/supabase';
-import {
-  setSecureSessionItem,
-  getSecureSessionItem,
-  removeSecureSessionItem,
-} from '../services/secureSession';
 import {
   connectLiveEvmWallet,
   connectLiveNimiqHub,
@@ -41,6 +41,7 @@ import {
   fetchLiveNimPrice,
   LiveWalletSession,
 } from '../services/liveWalletService';
+import { setSecureSessionItem } from '../services/secureSession';
 
 interface SavingsContextType {
   goals: SavingsGoal[];
@@ -58,6 +59,7 @@ interface SavingsContextType {
   theme: 'dark' | 'light';
   toggleTheme: () => void;
   isWalletConnected: boolean;
+  isSessionLoading: boolean;
   walletProvider: string | null;
   connectWallet: (provider: string) => Promise<void>;
   disconnectWallet: () => void;
@@ -76,185 +78,7 @@ interface SavingsContextType {
   closeCreateGoal: () => void;
 }
 
-const defaultGoals: SavingsGoal[] = [
-  {
-    id: 'goal_house',
-    title: 'Modern Dream House',
-    category: 'house',
-    goalType: 'target',
-    targetAmount: 350000,
-    currentAmount: 145000,
-    currency: 'USDT',
-    deadlineMonths: 36,
-    createdAt: '2026 01 15',
-    milestones: [
-      { id: 'm1', name: 'Foundation and Site Prep', description: 'Excavation ground grading and foundation slab', thresholdPercent: 20 },
-      { id: 'm2', name: 'Concrete Framing and Steel', description: 'Reinforced pillars core columns and floor beams', thresholdPercent: 40 },
-      { id: 'm3', name: 'Weatherproof Shell and Walls', description: 'Exterior insulated walls and secure entrance portal', thresholdPercent: 60 },
-      { id: 'm4', name: 'Architectural Roof and Glazing', description: 'Pitched modern roof skylights and panoramic glass', thresholdPercent: 80 },
-      { id: 'm5', name: 'Interior Finishes and Garden', description: 'Custom carpentry terrace and landscaping', thresholdPercent: 100 },
-    ],
-  },
-  {
-    id: 'goal_car',
-    title: 'Electric Performance Car',
-    category: 'car',
-    goalType: 'target',
-    targetAmount: 65000,
-    currentAmount: 24500,
-    currency: 'USDT',
-    deadlineMonths: 18,
-    createdAt: '2026 03 01',
-    milestones: [
-      { id: 'c1', name: 'Structural Chassis and Core', description: 'Underbody aero floor and high capacity battery pack', thresholdPercent: 25 },
-      { id: 'c2', name: 'Sport Cockpit and Dash', description: 'Dual racing bucket seats and heads up display', thresholdPercent: 50 },
-      { id: 'c3', name: 'Aerodynamic Body Shell', description: 'Metallic bodywork rear diffuser and active spoiler', thresholdPercent: 75 },
-      { id: 'c4', name: 'Alloy Wheels and LED Lighting', description: 'Forged lightweight wheels and full LED light array', thresholdPercent: 100 },
-    ],
-  },
-  {
-    id: 'goal_trip',
-    title: 'Tokyo and Kyoto Journey',
-    category: 'trip',
-    goalType: 'target',
-    targetAmount: 6500,
-    currentAmount: 3900,
-    currency: 'USDT',
-    deadlineMonths: 8,
-    createdAt: '2026 04 12',
-    milestones: [
-      { id: 't1', name: 'Roundtrip Flights', description: 'Direct international flight tickets reserved', thresholdPercent: 25 },
-      { id: 't2', name: 'Ryokan and Boutique Stays', description: 'Traditional hot spring inn and boutique city hotel', thresholdPercent: 50 },
-      { id: 't3', name: 'Shinkansen Rail Passes', description: 'High speed bullet train tickets and regional transit', thresholdPercent: 75 },
-      { id: 't4', name: 'Culinary and Excursions', description: 'Full cultural travel itinerary and guided tours covered', thresholdPercent: 100 },
-    ],
-  },
-  {
-    id: 'goal_emergency',
-    title: 'Perpetual Reserve Vault',
-    category: 'emergency',
-    goalType: 'open_vault',
-    targetAmount: 2500000,
-    currentAmount: 750000,
-    currency: 'NIM',
-    deadlineMonths: 36,
-    createdAt: '2026 02 10',
-    milestones: [
-      { id: 'v1', name: 'Reinforced Outer Casing', description: 'Heavy vault structural enclosure and armor plating', thresholdPercent: 25 },
-      { id: 'v2', name: 'Steel Door and Dial', description: 'Rotary combination wheel and deadbolt locking system', thresholdPercent: 50 },
-      { id: 'v3', name: 'Internal Gold Stacks', description: 'Physical gold bullion and reserve settlement tokens', thresholdPercent: 75 },
-      { id: 'v4', name: 'Open Treasure Chest', description: 'Compounding perpetual safety cushion with zero lockup', thresholdPercent: 100 },
-    ],
-  },
-];
-
-const defaultPrompts: HobbyPrompt[] = [
-  {
-    id: 'p1',
-    title: 'Weekend Football Win',
-    hobbyCategory: 'football',
-    eventDescription: 'Your chosen club secured three points in the weekend league. Voluntary victory savings boost.',
-    suggestedAmount: 25,
-    currency: 'USDT',
-    teamOrTopic: 'Arsenal',
-    completed: false,
-  },
-  {
-    id: 'p2',
-    title: 'Basketball Game Night',
-    hobbyCategory: 'basketball',
-    eventDescription: 'Your team reached over 110 points tonight. Put aside a small boost toward your goal.',
-    suggestedAmount: 20,
-    currency: 'USDT',
-    teamOrTopic: 'Golden State',
-    completed: false,
-  },
-  {
-    id: 'p3',
-    title: 'Weekend Gaming Quest',
-    hobbyCategory: 'gaming',
-    eventDescription: 'Weekly gaming raid finished with your squad. Celebrate discipline by adding to your dream.',
-    suggestedAmount: 15,
-    currency: 'USDT',
-    teamOrTopic: 'Squad Raid',
-    completed: false,
-  },
-  {
-    id: 'p4',
-    title: 'Nimiq Network Milestone',
-    hobbyCategory: 'crypto',
-    eventDescription: 'Proof of Stake validators reached milestone block. Voluntary habit deposit with zero gas.',
-    suggestedAmount: 10000,
-    currency: 'NIM',
-    teamOrTopic: 'Nimiq PoS',
-    completed: false,
-  },
-];
-
-const defaultTransactions: Transaction[] = [
-  {
-    id: 'tx_01',
-    goalId: 'goal_trip',
-    goalTitle: 'Tokyo and Kyoto Journey',
-    amount: 250,
-    currency: 'USDT',
-    equivalentAmount: 71428,
-    equivalentCurrency: 'NIM',
-    type: 'deposit',
-    date: '2026 11 09',
-    txHash: 'a71b2d493a04cf91b29a8f2761038b556942ce2139487920ab3e8f192bce9100',
-    fee: 0,
-    status: 'confirmed',
-    note: 'Weekly trip flight savings deposit',
-  },
-  {
-    id: 'tx_02',
-    goalId: 'goal_emergency',
-    goalTitle: 'Perpetual Reserve Vault',
-    amount: 50000,
-    currency: 'NIM',
-    equivalentAmount: 175,
-    equivalentCurrency: 'USDT',
-    type: 'deposit',
-    date: '2026 11 08',
-    txHash: 'e71b2d493a04cf91b29a8f2761038b556942ce2139487920ab3e8f192bce9100',
-    fee: 0,
-    status: 'confirmed',
-    note: 'Native NIM staking reward rollover',
-  },
-  {
-    id: 'tx_03',
-    goalId: 'goal_car',
-    goalTitle: 'Electric Performance Car',
-    amount: 500,
-    currency: 'USDT',
-    equivalentAmount: 142857,
-    equivalentCurrency: 'NIM',
-    type: 'deposit',
-    date: '2026 11 05',
-    txHash: '8b3c990234a419df0123567889bcde44512903847291aebcd398402910293847',
-    fee: 0,
-    status: 'confirmed',
-    note: 'Biweekly car fund contribution',
-  },
-  {
-    id: 'tx_04',
-    goalId: 'goal_house',
-    goalTitle: 'Modern Dream House',
-    amount: 1000,
-    currency: 'USDT',
-    equivalentAmount: 285714,
-    equivalentCurrency: 'NIM',
-    type: 'prompt_deposit',
-    date: '2026 11 02',
-    txHash: '990234123567889bcde44512903847291aebcd3984029102938478b3c88123490',
-    fee: 0,
-    status: 'confirmed',
-    note: 'Arsenal weekend victory voluntary boost',
-  },
-];
-
-const defaultWallet: WalletInfo = {
+const emptyWallet: WalletInfo = {
   nimiqAddress: '',
   balanceNim: 0,
   balanceUsdt: 0,
@@ -264,105 +88,119 @@ const defaultWallet: WalletInfo = {
   isConnected: false,
 };
 
-const defaultStreak: SavingsStreakInfo = {
+const emptyStreak: SavingsStreakInfo = {
   currentDays: 0,
   longestDays: 0,
   lastDepositDate: '',
   freezesRemaining: 2,
 };
 
-const defaultCommunities: SavingsCommunity[] = [
+const baseCommunityDefinitions: {
+  id: string;
+  name: string;
+  hobbyCategory: HobbyCategory;
+  teamOrTopic: string;
+  collectiveGoalTitle: string;
+}[] = [
   {
     id: 'comm_arsenal',
     name: 'Arsenal Gunners Club',
     hobbyCategory: 'football',
     teamOrTopic: 'Arsenal',
-    memberCount: 1280,
-    totalPoolUsdt: 142500,
     collectiveGoalTitle: 'Emirates Stadium Tour and VIP Box Fund',
-    leaderboard: [
-      { rank: 1, username: 'BukayoSaver', totalSavedUsdt: 14200, streakDays: 42, badge: 'Syndicate Leader' },
-      { rank: 2, username: 'ThierryNIM', totalSavedUsdt: 11800, streakDays: 35, badge: 'Veteran Saver' },
-      { rank: 3, username: 'NorthLondonGold', totalSavedUsdt: 9400, streakDays: 28, badge: 'Goal Hunter' },
-      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
-      { rank: 5, username: 'GunnerFaithful', totalSavedUsdt: 4200, streakDays: 12, badge: 'Discipline Master' },
-    ],
   },
   {
     id: 'comm_madrid',
     name: 'Real Madrid Madridistas',
     hobbyCategory: 'football',
     teamOrTopic: 'Real Madrid',
-    memberCount: 1840,
-    totalPoolUsdt: 218000,
     collectiveGoalTitle: 'Bernabeu Champions League Trip',
-    leaderboard: [
-      { rank: 1, username: 'HalaNimiq', totalSavedUsdt: 18500, streakDays: 56, badge: 'Syndicate Leader' },
-      { rank: 2, username: 'WhiteCrown', totalSavedUsdt: 15200, streakDays: 41, badge: 'Veteran Saver' },
-      { rank: 3, username: 'ModricMagic', totalSavedUsdt: 12100, streakDays: 32, badge: 'Goal Hunter' },
-      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
-      { rank: 5, username: 'CibelesDream', totalSavedUsdt: 4900, streakDays: 19, badge: 'Discipline Master' },
-    ],
   },
   {
     id: 'comm_warriors',
     name: 'Golden State Warriors Hub',
     hobbyCategory: 'basketball',
     teamOrTopic: 'Golden State',
-    memberCount: 940,
-    totalPoolUsdt: 98000,
     collectiveGoalTitle: 'Chase Center Courtside Season Pass',
-    leaderboard: [
-      { rank: 1, username: 'CurrySplash', totalSavedUsdt: 16400, streakDays: 48, badge: 'Syndicate Leader' },
-      { rank: 2, username: 'BayAreaVault', totalSavedUsdt: 10900, streakDays: 31, badge: 'Veteran Saver' },
-      { rank: 3, username: 'DubNation99', totalSavedUsdt: 7800, streakDays: 22, badge: 'Goal Hunter' },
-      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
-      { rank: 5, username: 'KlayCoast', totalSavedUsdt: 3600, streakDays: 10, badge: 'Discipline Master' },
-    ],
   },
   {
     id: 'comm_gaming',
     name: 'Squad Raid Gamers',
     hobbyCategory: 'gaming',
     teamOrTopic: 'Squad Raid',
-    memberCount: 720,
-    totalPoolUsdt: 64000,
     collectiveGoalTitle: 'Custom High End Battlestations Fund',
-    leaderboard: [
-      { rank: 1, username: 'RaidBossLoot', totalSavedUsdt: 12800, streakDays: 39, badge: 'Syndicate Leader' },
-      { rank: 2, username: 'PixelKnight', totalSavedUsdt: 9200, streakDays: 27, badge: 'Veteran Saver' },
-      { rank: 3, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
-      { rank: 4, username: 'MythicDrop', totalSavedUsdt: 4400, streakDays: 15, badge: 'Goal Hunter' },
-      { rank: 5, username: 'RespawnDiscipline', totalSavedUsdt: 2900, streakDays: 8, badge: 'Discipline Master' },
-    ],
   },
   {
     id: 'comm_nimiq',
     name: 'Nimiq PoS Stakers Circle',
     hobbyCategory: 'crypto',
     teamOrTopic: 'Nimiq PoS',
-    memberCount: 2450,
-    totalPoolUsdt: 480000,
     collectiveGoalTitle: 'Validator Node Staking Compound Pool',
-    leaderboard: [
-      { rank: 1, username: 'GenesisValidator', totalSavedUsdt: 35000, streakDays: 90, badge: 'Syndicate Leader' },
-      { rank: 2, username: 'AlbatrossNode', totalSavedUsdt: 28400, streakDays: 74, badge: 'Veteran Saver' },
-      { rank: 3, username: 'PoSHarvester', totalSavedUsdt: 19800, streakDays: 52, badge: 'Goal Hunter' },
-      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
-      { rank: 5, username: 'NIMHolder', totalSavedUsdt: 14200, streakDays: 38, badge: 'Discipline Master' },
-    ],
   },
 ];
+
+function buildPromptsForSelection(hobby: HobbyCategory, topic: string): HobbyPrompt[] {
+  return [
+    {
+      id: 'p_football',
+      title: 'Weekend Football Win',
+      hobbyCategory: 'football',
+      eventDescription: `${hobby === 'football' ? topic : 'Arsenal'} secured three points in the weekend league. Voluntary victory savings boost.`,
+      suggestedAmount: 25,
+      currency: 'USDT',
+      teamOrTopic: hobby === 'football' ? topic : 'Arsenal',
+      completed: false,
+    },
+    {
+      id: 'p_basketball',
+      title: 'Basketball Game Night',
+      hobbyCategory: 'basketball',
+      eventDescription: `${hobby === 'basketball' ? topic : 'Golden State'} reached over 110 points tonight. Put aside a small boost toward your goal.`,
+      suggestedAmount: 20,
+      currency: 'USDT',
+      teamOrTopic: hobby === 'basketball' ? topic : 'Golden State',
+      completed: false,
+    },
+    {
+      id: 'p_gaming',
+      title: 'Weekend Gaming Quest',
+      hobbyCategory: 'gaming',
+      eventDescription: `${hobby === 'gaming' ? topic : 'Squad Raid'} finished weekly raid objectives. Celebrate discipline by adding to your dream.`,
+      suggestedAmount: 15,
+      currency: 'USDT',
+      teamOrTopic: hobby === 'gaming' ? topic : 'Squad Raid',
+      completed: false,
+    },
+    {
+      id: 'p_crypto',
+      title: 'Nimiq Network Milestone',
+      hobbyCategory: 'crypto',
+      eventDescription: `${hobby === 'crypto' ? topic : 'Nimiq PoS'} validators reached milestone block. Voluntary habit deposit with zero gas.`,
+      suggestedAmount: 10000,
+      currency: 'NIM',
+      teamOrTopic: hobby === 'crypto' ? topic : 'Nimiq PoS',
+      completed: false,
+    },
+  ];
+}
 
 export function resolveCommunityForTopic(
   topic: string,
   hobby: HobbyCategory,
-  existingCommunities: SavingsCommunity[] = defaultCommunities
+  existingCommunities: SavingsCommunity[] = [],
+  aggregation: LiveCommunityAggregation | null = null,
+  currentUserAddress: string = '',
+  currentUserSavedUsdt: number = 0,
+  currentUserStreakDays: number = 0
 ): SavingsCommunity {
-  const match = existingCommunities.find(
+  const existingMatch = existingCommunities.find(
     (c) => c.teamOrTopic.toLowerCase() === topic.toLowerCase()
   );
-  if (match) return match;
+  if (existingMatch) return existingMatch;
+
+  const baseDef = baseCommunityDefinitions.find(
+    (d) => d.teamOrTopic.toLowerCase() === topic.toLowerCase()
+  );
 
   const slug = topic.toLowerCase().replace(/[^a-z0-9]/g, '');
   let suffix = 'Club';
@@ -381,171 +219,121 @@ export function resolveCommunityForTopic(
     goalTitle = `${topic} Compounding Staking and Node Pool`;
   }
 
-  const hash = topic.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const memberCount = 750 + (hash % 1600);
-  const totalPoolUsdt = 45000 + ((hash * 137) % 220000);
+  const commId = baseDef ? baseDef.id : `comm_${slug || 'custom'}`;
+  const commName = baseDef ? baseDef.name : `${topic} ${suffix}`;
+  const commGoalTitle = baseDef ? baseDef.collectiveGoalTitle : goalTitle;
 
-  const cleanTopic = topic.replace(/\s+/g, '');
+  const normalizedTopic = topic.toLowerCase();
+  const normalizedUser = currentUserAddress.toLowerCase();
+
+  const matchingProfiles = (aggregation?.profiles || []).filter(
+    (p) => p.topic.toLowerCase() === normalizedTopic
+  );
+
+  const memberMap = new Map<
+    string,
+    { address: string; savedUsdt: number; streakDays: number; isCurrentUser: boolean }
+  >();
+
+  for (const p of matchingProfiles) {
+    const addrKey = p.walletAddress.toLowerCase();
+    if (!addrKey) continue;
+    const isMe = Boolean(normalizedUser && addrKey === normalizedUser);
+    const saved = isMe
+      ? currentUserSavedUsdt
+      : Math.round(aggregation?.walletTotalsUsdt[addrKey] || 0);
+    const strk = isMe ? currentUserStreakDays : p.streakDays;
+    memberMap.set(addrKey, {
+      address: p.walletAddress,
+      savedUsdt: saved,
+      streakDays: strk,
+      isCurrentUser: isMe,
+    });
+  }
+
+  if (normalizedUser && !memberMap.has(normalizedUser)) {
+    memberMap.set(normalizedUser, {
+      address: currentUserAddress,
+      savedUsdt: Math.round(currentUserSavedUsdt),
+      streakDays: currentUserStreakDays,
+      isCurrentUser: true,
+    });
+  }
+
+  const membersList = Array.from(memberMap.values()).sort(
+    (a, b) => b.savedUsdt - a.savedUsdt || b.streakDays - a.streakDays
+  );
+
+  const totalPoolUsdt = membersList.reduce((sum, m) => sum + m.savedUsdt, 0);
+  const memberCount = membersList.length;
+
+  const leaderboard: CommunityLeaderboardEntry[] = membersList.slice(0, 10).map((m, idx) => ({
+    rank: idx + 1,
+    username: m.isCurrentUser ? `${formatNimiqAddress(m.address)} (You)` : formatNimiqAddress(m.address),
+    totalSavedUsdt: Math.round(m.savedUsdt),
+    streakDays: m.streakDays,
+    isCurrentUser: m.isCurrentUser,
+    badge: idx === 0 && m.savedUsdt > 0 ? 'Club Leader' : m.streakDays > 0 ? 'Active Saver' : 'Club Member',
+  }));
+
   return {
-    id: `comm_${slug || 'custom'}`,
-    name: `${topic} ${suffix}`,
+    id: commId,
+    name: commName,
     hobbyCategory: hobby,
     teamOrTopic: topic,
     memberCount,
-    totalPoolUsdt,
-    collectiveGoalTitle: goalTitle,
-    leaderboard: [
-      { rank: 1, username: `${cleanTopic}Alpha`, totalSavedUsdt: 18200, streakDays: 52, badge: 'Syndicate Leader' },
-      { rank: 2, username: `${cleanTopic}Captain`, totalSavedUsdt: 14500, streakDays: 38, badge: 'Veteran Saver' },
-      { rank: 3, username: 'ChainDiscipline', totalSavedUsdt: 10800, streakDays: 29, badge: 'Goal Hunter' },
-      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
-      { rank: 5, username: 'ReserveKeeper', totalSavedUsdt: 4100, streakDays: 11, badge: 'Discipline Master' },
-    ],
+    totalPoolUsdt: Math.round(totalPoolUsdt),
+    collectiveGoalTitle: commGoalTitle,
+    leaderboard,
   };
 }
 
 const SavingsContext = createContext<SavingsContextType | undefined>(undefined);
 
 export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [goals, setGoals] = useState<SavingsGoal[]>(() => {
-    const saved = localStorage.getItem('nimisave_goals');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Check if user still had the old dummy 25000 house price; if so, upgrade to realistic price
-          return parsed.map((g: any) => {
-            let targetAmount = typeof g.targetAmount === 'number' && g.targetAmount > 0 ? g.targetAmount : 1000;
-            let currentAmount = typeof g.currentAmount === 'number' ? g.currentAmount : 0;
-            if (g.id === 'goal_house' && targetAmount === 25000) {
-              targetAmount = 350000;
-              currentAmount = 145000;
-            } else if (g.id === 'goal_car' && targetAmount === 18000) {
-              targetAmount = 65000;
-              currentAmount = 24500;
-            } else if (g.id === 'goal_trip' && targetAmount === 4500) {
-              targetAmount = 6500;
-              currentAmount = 3900;
-            }
-            return {
-              ...g,
-              currency: g.currency === 'NIM' ? 'NIM' : 'USDT',
-              category: g.category || 'house',
-              targetAmount,
-              currentAmount,
-              milestones: Array.isArray(g.milestones) ? g.milestones : [],
-            };
-          });
-        }
-      } catch {
-        return defaultGoals;
-      }
+  // Clean up any legacy unauthenticated dummy keys in localStorage on startup
+  useEffect(() => {
+    const legacyKeys = [
+      'nimisave_goals',
+      'nimisave_transactions',
+      'nimisave_wallet',
+      'nimisave_streak',
+      'nimisave_prompts',
+    ];
+    for (const k of legacyKeys) {
+      localStorage.removeItem(k);
     }
-    return defaultGoals;
-  });
+  }, []);
 
-  const [activeGoalId, setActiveGoalId] = useState<string>('goal_house');
-
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('nimisave_transactions');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((tx: any) => ({
-            ...tx,
-            amount: typeof tx.amount === 'number' ? tx.amount : 0,
-            currency: tx.currency === 'NIM' ? 'NIM' : 'USDT',
-            fee: typeof tx.fee === 'number' ? tx.fee : 0,
-            goalTitle: tx.goalTitle || 'Savings Box',
-            date: tx.date || '2026 11 10',
-            txHash: tx.txHash || 'e71b2d493a04cf91b29a8f2761038b556942ce2139487920ab3e8f192bce9100',
-          }));
-        }
-      } catch {
-        return defaultTransactions;
-      }
-    }
-    return defaultTransactions;
-  });
-
-  const [prompts, setPrompts] = useState<HobbyPrompt[]>(() => {
-    const saved = localStorage.getItem('nimisave_prompts');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((p: any) => ({
-            ...p,
-            currency: p.currency === 'NIM' ? 'NIM' : 'USDT',
-            suggestedAmount: typeof p.suggestedAmount === 'number' ? p.suggestedAmount : 20,
-            teamOrTopic: p.teamOrTopic || 'Arsenal',
-          }));
-        }
-      } catch {
-        return defaultPrompts;
-      }
-    }
-    return defaultPrompts;
-  });
-
-  const [wallet, setWallet] = useState<WalletInfo>(() => {
-    const saved = localStorage.getItem('nimisave_wallet');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return {
-          ...defaultWallet,
-          ...parsed,
-          balanceNim: typeof parsed.balanceNim === 'number' ? parsed.balanceNim : defaultWallet.balanceNim,
-          balanceUsdt: typeof parsed.balanceUsdt === 'number' ? parsed.balanceUsdt : defaultWallet.balanceUsdt,
-          freeEmergencyWithdrawalsRemaining:
-            typeof parsed.freeEmergencyWithdrawalsRemaining === 'number'
-              ? parsed.freeEmergencyWithdrawalsRemaining
-              : defaultWallet.freeEmergencyWithdrawalsRemaining,
-          sponsoredTxCount:
-            typeof parsed.sponsoredTxCount === 'number'
-              ? parsed.sponsoredTxCount
-              : defaultWallet.sponsoredTxCount,
-          isConnected: parsed.isConnected ?? true,
-          connectedProvider: parsed.connectedProvider ?? 'Nimiq Hub',
-        };
-      } catch {
-        return defaultWallet;
-      }
-    }
-    return defaultWallet;
-  });
-
-  const [streak, setStreak] = useState<SavingsStreakInfo>(() => {
-    const saved = localStorage.getItem('nimisave_streak');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return defaultStreak;
-      }
-    }
-    return defaultStreak;
-  });
-
+  const [goals, setGoals] = useState<SavingsGoal[]>([]);
+  const [activeGoalId, setActiveGoalId] = useState<string>('');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [wallet, setWallet] = useState<WalletInfo>(emptyWallet);
+  const [streak, setStreak] = useState<SavingsStreakInfo>(emptyStreak);
   const [selectedHobby, setSelectedHobby] = useState<HobbyCategory>(() => {
     return (localStorage.getItem('nimisave_hobby') as HobbyCategory) || 'football';
   });
-
   const [selectedTopic, setSelectedTopic] = useState<string>(() => {
     return localStorage.getItem('nimisave_topic') || 'Arsenal';
   });
+  const [prompts, setPrompts] = useState<HobbyPrompt[]>(() =>
+    buildPromptsForSelection(
+      (localStorage.getItem('nimisave_hobby') as HobbyCategory) || 'football',
+      localStorage.getItem('nimisave_topic') || 'Arsenal'
+    )
+  );
+  const [communityAggregation, setCommunityAggregation] = useState<LiveCommunityAggregation | null>(null);
 
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
+  const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true);
   const [walletProvider, setWalletProvider] = useState<string | null>(null);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
-  const openConnectModal = () => setIsConnectModalOpen(true);
-  const closeConnectModal = () => setIsConnectModalOpen(false);
+  const openConnectModal = useCallback(() => setIsConnectModalOpen(true), []);
+  const closeConnectModal = useCallback(() => setIsConnectModalOpen(false), []);
 
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState<boolean>(false);
-  const openCreateGoal = () => setIsCreateGoalOpen(true);
-  const closeCreateGoal = () => setIsCreateGoalOpen(false);
+  const openCreateGoal = useCallback(() => setIsCreateGoalOpen(true), []);
+  const closeCreateGoal = useCallback(() => setIsCreateGoalOpen(false), []);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('nimisave_theme');
@@ -567,91 +355,125 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [theme]);
 
-  useEffect(() => {
-    localStorage.setItem('nimisave_goals', JSON.stringify(goals));
-  }, [goals]);
+  const syncUserCloudData = useCallback(async (address: string, nimPrice: number = 0.0035) => {
+    if (!address) return;
 
-  useEffect(() => {
-    localStorage.setItem('nimisave_transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
-  useEffect(() => {
-    localStorage.setItem('nimisave_prompts', JSON.stringify(prompts));
-  }, [prompts]);
-
-  useEffect(() => {
-    localStorage.setItem('nimisave_wallet', JSON.stringify(wallet));
-  }, [wallet]);
-
-  useEffect(() => {
-    localStorage.setItem('nimisave_streak', JSON.stringify(streak));
-  }, [streak]);
-
-  const syncUserCloudData = async (address: string) => {
-    if (!isSupabaseConfigured() || !address) return;
+    if (!isSupabaseConfigured()) {
+      return;
+    }
 
     try {
-      const [remoteGoals, remoteTx, remoteProfile] = await Promise.all([
+      const [remoteGoals, remoteTx, remoteProfile, remotePrompts, liveAgg] = await Promise.all([
         fetchRemoteGoals(address),
         fetchRemoteTransactions(address),
         fetchRemoteUserProfile(address),
+        fetchRemotePrompts(address),
+        fetchLiveCommunityAggregation(nimPrice),
       ]);
 
+      if (liveAgg) {
+        setCommunityAggregation(liveAgg);
+      }
+
       if (remoteGoals !== null) {
-        setGoals(remoteGoals);
-        if (remoteGoals.length > 0) {
-          setActiveGoalId(remoteGoals[0].id);
-        }
+        const cleanGoals = remoteGoals.filter(
+          (g) => !['goal_house', 'goal_car', 'goal_trip', 'goal_emergency'].includes(g.id)
+        );
+        setGoals(cleanGoals);
+        setActiveGoalId(cleanGoals[0]?.id || '');
       }
 
       if (remoteTx !== null) {
-        setTransactions(remoteTx);
+        const cleanTx = remoteTx.filter(
+          (t) => !['tx_01', 'tx_02', 'tx_03', 'tx_04'].includes(t.id)
+        );
+        setTransactions(cleanTx);
       }
 
+      let activeHobby: HobbyCategory = selectedHobby;
+      let activeTopic: string = selectedTopic;
+
       if (remoteProfile) {
-        if (remoteProfile.hobby) setSelectedHobby(remoteProfile.hobby);
-        if (remoteProfile.topic) setSelectedTopic(remoteProfile.topic);
-        if (remoteProfile.streak) setStreak(remoteProfile.streak);
+        if (remoteProfile.hobby) {
+          activeHobby = remoteProfile.hobby;
+          setSelectedHobby(remoteProfile.hobby);
+          localStorage.setItem('nimisave_hobby', remoteProfile.hobby);
+        }
+        if (remoteProfile.topic) {
+          activeTopic = remoteProfile.topic;
+          setSelectedTopic(remoteProfile.topic);
+          localStorage.setItem('nimisave_topic', remoteProfile.topic);
+        }
+        if (remoteProfile.streak) {
+          setStreak(remoteProfile.streak);
+        }
+        setWallet((prev) => ({
+          ...prev,
+          freeEmergencyWithdrawalsRemaining:
+            typeof remoteProfile.freeEmergencyWithdrawalsRemaining === 'number'
+              ? remoteProfile.freeEmergencyWithdrawalsRemaining
+              : prev.freeEmergencyWithdrawalsRemaining,
+          sponsoredTxCount:
+            typeof remoteProfile.sponsoredTxCount === 'number'
+              ? remoteProfile.sponsoredTxCount
+              : prev.sponsoredTxCount,
+        }));
+      }
+
+      if (remotePrompts && remotePrompts.length > 0) {
+        setPrompts(remotePrompts);
+      } else {
+        const freshPrompts = buildPromptsForSelection(activeHobby, activeTopic);
+        setPrompts(freshPrompts);
+        upsertRemotePrompts(address, freshPrompts);
       }
     } catch (err) {
-      console.warn('Error syncing Supabase cloud data:', err);
+      console.warn('Sync notice:', err);
     }
-  };
+  }, [selectedHobby, selectedTopic]);
 
   // Restore live encrypted session on load
   useEffect(() => {
     let isMounted = true;
 
     async function initLiveEnvironment() {
+      const currentNimPrice = 0.0035;
+      fetchLiveNimPrice()
+        .then((livePrice) => {
+          if (livePrice > 0 && isMounted) {
+            setWallet((prev) => ({ ...prev, nimPriceUsd: livePrice }));
+          }
+        })
+        .catch(() => {});
+
       try {
-        const livePrice = await fetchLiveNimPrice();
-        if (isMounted && livePrice > 0) {
-          setWallet((prev) => ({ ...prev, nimPriceUsd: livePrice }));
+        const existingSession = await getLiveWalletSession();
+        if (existingSession && existingSession.address && isMounted) {
+          setIsWalletConnected(true);
+          setWalletProvider(existingSession.provider);
+          setWallet((prev) => ({
+            ...prev,
+            isConnected: true,
+            nimiqAddress: existingSession.address,
+            connectedProvider: existingSession.provider,
+            balanceNim: existingSession.balanceNim,
+            balanceUsdt: existingSession.balanceUsdt,
+            nimPriceUsd: prev.nimPriceUsd || currentNimPrice,
+          }));
+
+          syncUserCloudData(existingSession.address, currentNimPrice);
+        } else if (isMounted) {
+          setIsWalletConnected(false);
+          setWalletProvider(null);
+          setWallet((prev) => ({ ...emptyWallet, nimPriceUsd: prev.nimPriceUsd || currentNimPrice }));
+          setGoals([]);
+          setTransactions([]);
+          setStreak(emptyStreak);
         }
-      } catch {}
-
-      const existingSession = await getLiveWalletSession();
-      if (existingSession && isMounted) {
-        setIsWalletConnected(true);
-        setWalletProvider(existingSession.provider);
-        setWallet((prev) => ({
-          ...prev,
-          isConnected: true,
-          nimiqAddress: existingSession.address,
-          connectedProvider: existingSession.provider,
-          balanceNim: existingSession.balanceNim,
-          balanceUsdt: existingSession.balanceUsdt,
-        }));
-
-        await syncUserCloudData(existingSession.address);
-      } else if (isMounted) {
-        setIsWalletConnected(false);
-        setWalletProvider(null);
-        setWallet((prev) => ({
-          ...prev,
-          isConnected: false,
-          nimiqAddress: '',
-        }));
+      } finally {
+        if (isMounted) {
+          setIsSessionLoading(false);
+        }
       }
     }
 
@@ -697,45 +519,41 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
+    const currentNimPrice = wallet.nimPriceUsd || 0.0035;
+
     setIsWalletConnected(true);
     setWalletProvider(session.provider);
-    setWallet((prev) => ({
-      ...prev,
-      isConnected: true,
+    setWallet({
       nimiqAddress: session.address,
       connectedProvider: session.provider,
       balanceNim: session.balanceNim,
       balanceUsdt: session.balanceUsdt,
-    }));
+      nimPriceUsd: currentNimPrice,
+      freeEmergencyWithdrawalsRemaining: 3,
+      sponsoredTxCount: 0,
+      isConnected: true,
+    });
 
-    try {
-      const livePrice = await fetchLiveNimPrice();
-      if (livePrice > 0) {
-        setWallet((prev) => ({ ...prev, nimPriceUsd: livePrice }));
-      }
-    } catch {}
+    fetchLiveNimPrice()
+      .then((livePrice) => {
+        if (livePrice > 0) {
+          setWallet((prev) => ({ ...prev, nimPriceUsd: livePrice }));
+        }
+      })
+      .catch(() => {});
 
-    await syncUserCloudData(session.address);
+    syncUserCloudData(session.address, currentNimPrice);
   };
 
   const disconnectWallet = () => {
     disconnectLiveWallet();
     setIsWalletConnected(false);
     setWalletProvider(null);
-    setWallet({
-      nimiqAddress: '',
-      balanceNim: 0,
-      balanceUsdt: 0,
-      nimPriceUsd: 0.0035,
-      freeEmergencyWithdrawalsRemaining: 3,
-      sponsoredTxCount: 0,
-      isConnected: false,
-    });
+    setWallet(emptyWallet);
     setGoals([]);
+    setActiveGoalId('');
     setTransactions([]);
-    localStorage.removeItem('nimisave_goals');
-    localStorage.removeItem('nimisave_transactions');
-    localStorage.removeItem('nimisave_wallet');
+    setStreak(emptyStreak);
   };
 
   const setHobbyPreference = (hobby: HobbyCategory, topic: string) => {
@@ -745,11 +563,15 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('nimisave_topic', topic);
 
     if (isSupabaseConfigured() && wallet.nimiqAddress) {
-      upsertRemoteUserProfile(wallet.nimiqAddress, { hobby, topic });
+      upsertRemoteUserProfile(wallet.nimiqAddress, { hobby, topic }).then(() => {
+        fetchLiveCommunityAggregation(wallet.nimPriceUsd).then((agg) => {
+          if (agg) setCommunityAggregation(agg);
+        });
+      });
     }
 
-    setPrompts((prev) =>
-      prev.map((p) => {
+    setPrompts((prev) => {
+      const updated = prev.map((p) => {
         if (p.hobbyCategory === hobby) {
           return {
             ...p,
@@ -762,30 +584,74 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 ? `${topic} scored high in the conference tonight. Voluntary victory savings boost.`
                 : hobby === 'gaming'
                 ? `${topic} completed raid objectives. Voluntary victory savings boost.`
-                : `${topic} achieved network milestone. Voluntary voluntary savings boost.`,
+                : `${topic} achieved network milestone. Voluntary victory savings boost.`,
           };
         }
         return p;
-      })
-    );
+      });
+      if (isSupabaseConfigured() && wallet.nimiqAddress) {
+        upsertRemotePrompts(wallet.nimiqAddress, updated);
+      }
+      return updated;
+    });
   };
 
+  const currentUserSavedUsdt = useMemo(() => {
+    return goals.reduce((acc, g) => {
+      return acc + (g.currency === 'USDT' ? g.currentAmount : nimToUsdt(g.currentAmount));
+    }, 0);
+  }, [goals]);
+
+  const baseCommunities = useMemo(() => {
+    return baseCommunityDefinitions.map((def) => {
+      const isUserActiveTopic = def.teamOrTopic.toLowerCase() === selectedTopic.toLowerCase();
+      return resolveCommunityForTopic(
+        def.teamOrTopic,
+        def.hobbyCategory,
+        [],
+        communityAggregation,
+        isUserActiveTopic ? wallet.nimiqAddress : '',
+        currentUserSavedUsdt,
+        streak.currentDays
+      );
+    });
+  }, [communityAggregation, selectedTopic, wallet.nimiqAddress, currentUserSavedUsdt, streak.currentDays]);
+
   const activeCommunity = useMemo(() => {
-    return resolveCommunityForTopic(selectedTopic, selectedHobby, defaultCommunities);
-  }, [selectedTopic, selectedHobby]);
+    return resolveCommunityForTopic(
+      selectedTopic,
+      selectedHobby,
+      baseCommunities,
+      communityAggregation,
+      wallet.nimiqAddress,
+      currentUserSavedUsdt,
+      streak.currentDays
+    );
+  }, [
+    selectedTopic,
+    selectedHobby,
+    baseCommunities,
+    communityAggregation,
+    wallet.nimiqAddress,
+    currentUserSavedUsdt,
+    streak.currentDays,
+  ]);
 
   const communities = useMemo(() => {
-    const list = [...defaultCommunities];
-    const exists = list.some(
+    const exists = baseCommunities.some(
       (c) =>
         c.id === activeCommunity.id ||
         c.teamOrTopic.toLowerCase() === activeCommunity.teamOrTopic.toLowerCase()
     );
     if (!exists) {
-      return [activeCommunity, ...list];
+      return [activeCommunity, ...baseCommunities];
     }
-    return list;
-  }, [activeCommunity]);
+    return baseCommunities.map((c) =>
+      c.teamOrTopic.toLowerCase() === activeCommunity.teamOrTopic.toLowerCase()
+        ? activeCommunity
+        : c
+    );
+  }, [baseCommunities, activeCommunity]);
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) || goals[0] || null;
 
@@ -793,6 +659,9 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const now = new Date();
     const dateStr = `${now.getFullYear()} ${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}`;
     setStreak((prev) => {
+      if (prev.lastDepositDate === dateStr && prev.currentDays > 0) {
+        return prev;
+      }
       const nextDays = prev.currentDays + 1;
       const nextStreak = {
         ...prev,
@@ -807,6 +676,19 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
+  const updateSessionBalances = async (nextBalanceNim: number, nextBalanceUsdt: number) => {
+    try {
+      const existing = await getLiveWalletSession();
+      if (existing) {
+        await setSecureSessionItem('nimisave_auth_session', {
+          ...existing,
+          balanceNim: nextBalanceNim,
+          balanceUsdt: nextBalanceUsdt,
+        });
+      }
+    } catch {}
+  };
+
   const deposit = async (
     goalId: string,
     amount: number,
@@ -814,9 +696,14 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     note?: string
   ): Promise<boolean> => {
     const targetGoal = goals.find((g) => g.id === goalId);
-    if (!targetGoal) return false;
+    if (!targetGoal || !wallet.nimiqAddress || amount <= 0) return false;
 
     const usedCurrency: Currency = depositCurrency || targetGoal.currency;
+    const available = usedCurrency === 'NIM' ? wallet.balanceNim : wallet.balanceUsdt;
+    if (amount > available) {
+      return false;
+    }
+
     const settlement = await executeSettlement(wallet.nimiqAddress, wallet.nimiqAddress, amount, usedCurrency);
 
     let addedAmount = amount;
@@ -847,24 +734,40 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       note: note || 'Voluntary deposit',
     };
 
+    const nextGoalAmount = targetGoal.currentAmount + addedAmount;
+
     setGoals((prev) =>
       prev.map((g) =>
-        g.id === goalId ? { ...g, currentAmount: g.currentAmount + addedAmount } : g
+        g.id === goalId ? { ...g, currentAmount: nextGoalAmount } : g
       )
     );
 
     setTransactions((prev) => [newTx, ...prev]);
 
+    const nextSponsored = wallet.sponsoredTxCount + 1;
+    const nextBalanceNim =
+      usedCurrency === 'NIM' ? Math.max(0, wallet.balanceNim - amount) : wallet.balanceNim;
+    const nextBalanceUsdt =
+      usedCurrency === 'USDT' ? Math.max(0, Math.round((wallet.balanceUsdt - amount) * 100) / 100) : wallet.balanceUsdt;
+
     setWallet((prev) => ({
       ...prev,
-      sponsoredTxCount: prev.sponsoredTxCount + 1,
+      balanceNim: nextBalanceNim,
+      balanceUsdt: nextBalanceUsdt,
+      sponsoredTxCount: nextSponsored,
     }));
 
+    updateSessionBalances(nextBalanceNim, nextBalanceUsdt);
     extendStreak();
 
     if (isSupabaseConfigured() && wallet.nimiqAddress) {
-      updateRemoteGoalAmount(goalId, targetGoal.currentAmount + addedAmount);
-      insertRemoteTransaction(wallet.nimiqAddress, newTx);
+      await Promise.all([
+        updateRemoteGoalAmount(goalId, nextGoalAmount),
+        insertRemoteTransaction(wallet.nimiqAddress, newTx),
+        upsertRemoteUserProfile(wallet.nimiqAddress, { sponsoredTxCount: nextSponsored }),
+      ]);
+      const agg = await fetchLiveCommunityAggregation(wallet.nimPriceUsd);
+      if (agg) setCommunityAggregation(agg);
     }
 
     return true;
@@ -878,7 +781,7 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     note?: string
   ): Promise<boolean> => {
     const targetGoal = goals.find((g) => g.id === goalId);
-    if (!targetGoal) return false;
+    if (!targetGoal || !wallet.nimiqAddress || amount <= 0) return false;
 
     let deductionFromGoal = amount;
     if (withdrawCurrency !== targetGoal.currency) {
@@ -920,24 +823,45 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       note: note || (isEmergency ? 'Emergency access withdrawal' : 'Standard withdrawal'),
     };
 
+    const nextGoalAmount = Math.max(0, targetGoal.currentAmount - deductionFromGoal);
+
     setGoals((prev) =>
       prev.map((g) =>
-        g.id === goalId ? { ...g, currentAmount: g.currentAmount - deductionFromGoal } : g
+        g.id === goalId ? { ...g, currentAmount: nextGoalAmount } : g
       )
     );
 
     setTransactions((prev) => [newTx, ...prev]);
 
-    if (details.isFreeEmergency) {
-      setWallet((prev) => ({
-        ...prev,
-        freeEmergencyWithdrawalsRemaining: Math.max(0, prev.freeEmergencyWithdrawalsRemaining - 1),
-      }));
-    }
+    const nextFreePasses = details.isFreeEmergency
+      ? Math.max(0, wallet.freeEmergencyWithdrawalsRemaining - 1)
+      : wallet.freeEmergencyWithdrawalsRemaining;
+    const nextBalanceNim =
+      withdrawCurrency === 'NIM' ? wallet.balanceNim + details.netAmount : wallet.balanceNim;
+    const nextBalanceUsdt =
+      withdrawCurrency === 'USDT'
+        ? Math.round((wallet.balanceUsdt + details.netAmount) * 100) / 100
+        : wallet.balanceUsdt;
+
+    setWallet((prev) => ({
+      ...prev,
+      balanceNim: nextBalanceNim,
+      balanceUsdt: nextBalanceUsdt,
+      freeEmergencyWithdrawalsRemaining: nextFreePasses,
+    }));
+
+    updateSessionBalances(nextBalanceNim, nextBalanceUsdt);
 
     if (isSupabaseConfigured() && wallet.nimiqAddress) {
-      updateRemoteGoalAmount(goalId, targetGoal.currentAmount - deductionFromGoal);
-      insertRemoteTransaction(wallet.nimiqAddress, newTx);
+      await Promise.all([
+        updateRemoteGoalAmount(goalId, nextGoalAmount),
+        insertRemoteTransaction(wallet.nimiqAddress, newTx),
+        upsertRemoteUserProfile(wallet.nimiqAddress, {
+          freeEmergencyWithdrawalsRemaining: nextFreePasses,
+        }),
+      ]);
+      const agg = await fetchLiveCommunityAggregation(wallet.nimPriceUsd);
+      if (agg) setCommunityAggregation(agg);
     }
 
     return true;
@@ -955,9 +879,13 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
 
     if (success) {
-      setPrompts((prev) =>
-        prev.map((p) => (p.id === promptId ? { ...p, completed: true } : p))
-      );
+      setPrompts((prev) => {
+        const updated = prev.map((p) => (p.id === promptId ? { ...p, completed: true } : p));
+        if (isSupabaseConfigured() && wallet.nimiqAddress) {
+          upsertRemotePrompts(wallet.nimiqAddress, updated);
+        }
+        return updated;
+      });
     }
 
     return success;
@@ -965,6 +893,9 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const dismissPrompt = (promptId: string) => {
     setPrompts((prev) => prev.filter((p) => p.id !== promptId));
+    if (isSupabaseConfigured() && wallet.nimiqAddress) {
+      deleteRemotePrompt(wallet.nimiqAddress, promptId);
+    }
   };
 
   const addGoal = (goalData: Omit<SavingsGoal, 'id' | 'createdAt' | 'milestones'>) => {
@@ -1015,8 +946,62 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setActiveGoalId(newId);
     setIsCreateGoalOpen(false);
 
+    if (goalData.currentAmount > 0 && wallet.nimiqAddress) {
+      const nextBalanceNim =
+        goalData.currency === 'NIM'
+          ? Math.max(0, wallet.balanceNim - goalData.currentAmount)
+          : wallet.balanceNim;
+      const nextBalanceUsdt =
+        goalData.currency === 'USDT'
+          ? Math.max(0, Math.round((wallet.balanceUsdt - goalData.currentAmount) * 100) / 100)
+          : wallet.balanceUsdt;
+      const nextSponsored = wallet.sponsoredTxCount + 1;
+
+      setWallet((prev) => ({
+        ...prev,
+        balanceNim: nextBalanceNim,
+        balanceUsdt: nextBalanceUsdt,
+        sponsoredTxCount: nextSponsored,
+      }));
+      updateSessionBalances(nextBalanceNim, nextBalanceUsdt);
+      extendStreak();
+
+      executeSettlement(
+        wallet.nimiqAddress,
+        wallet.nimiqAddress,
+        goalData.currentAmount,
+        goalData.currency
+      ).then((settlement) => {
+        const initTx: Transaction = {
+          id: `tx_${Date.now()}`,
+          goalId: newId,
+          goalTitle: newGoal.title,
+          amount: goalData.currentAmount,
+          currency: goalData.currency,
+          equivalentAmount:
+            goalData.currency === 'NIM' ? settlement.usdtEquivalent : settlement.nimEquivalent,
+          equivalentCurrency: goalData.currency === 'NIM' ? 'USDT' : 'NIM',
+          type: 'deposit',
+          date: dateStr,
+          txHash: settlement.txHash,
+          fee: 0,
+          status: 'confirmed',
+          note: 'Initial goal box deposit',
+        };
+        setTransactions((prev) => [initTx, ...prev]);
+        if (isSupabaseConfigured() && wallet.nimiqAddress) {
+          insertRemoteTransaction(wallet.nimiqAddress, initTx);
+          upsertRemoteUserProfile(wallet.nimiqAddress, { sponsoredTxCount: nextSponsored });
+        }
+      });
+    }
+
     if (isSupabaseConfigured() && wallet.nimiqAddress) {
-      upsertRemoteGoal(wallet.nimiqAddress, newGoal);
+      upsertRemoteGoal(wallet.nimiqAddress, newGoal).then(() => {
+        fetchLiveCommunityAggregation(wallet.nimPriceUsd).then((agg) => {
+          if (agg) setCommunityAggregation(agg);
+        });
+      });
     }
   };
 
@@ -1038,6 +1023,7 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         theme,
         toggleTheme,
         isWalletConnected,
+        isSessionLoading,
         walletProvider,
         connectWallet,
         disconnectWallet,

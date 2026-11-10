@@ -124,8 +124,8 @@ export async function connectLiveEvmWallet(): Promise<LiveWalletSession> {
   // 5. Seal in secure Iron session storage
   await setSecureSessionItem(SESSION_STORAGE_KEY, session);
 
-  // 6. Sync profile with Supabase
-  await upsertRemoteUserProfile(address, {});
+  // 6. Sync profile with Supabase asynchronously
+  upsertRemoteUserProfile(address, {});
 
   return session;
 }

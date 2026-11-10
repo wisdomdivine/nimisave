@@ -42,7 +42,7 @@ export const Header: React.FC = () => {
           {/* Streak Badge */}
           <NavLink
             to="/communities"
-            className="flex items-center gap-1.5 py-1.5 px-2.5 sm:px-3 bg-neutral-900 hover:bg-neutral-850 rounded-xl text-xs text-amber-400 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 py-1.5 px-2.5 sm:px-3 bg-neutral-900 hover:bg-neutral-850 rounded-xl text-xs text-neutral-200 transition-colors cursor-pointer"
           >
             <FireIcon size={15} />
             <span>{streak.currentDays}d<span className="hidden sm:inline"> Streak</span></span>
@@ -54,7 +54,7 @@ export const Header: React.FC = () => {
             onClick={openConnectModal}
             className="flex items-center gap-1.5 sm:gap-2 py-2 px-2.5 sm:px-3.5 bg-neutral-900 hover:bg-neutral-850 rounded-xl text-xs text-neutral-200 transition-colors cursor-pointer"
           >
-            <Wallet01Icon size={14} className={isWalletConnected ? 'text-emerald-400' : 'text-neutral-400'} />
+            <Wallet01Icon size={14} className="text-neutral-300" />
             <span className="text-xs">
               {isWalletConnected ? shortAddress : 'Connect'}
             </span>

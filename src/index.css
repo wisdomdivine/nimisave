@@ -67,14 +67,14 @@
   }
 }
 
-/* Light Theme Overrides (Zero Border & Balanced Contrast) */
+/* Light Theme Overrides (Warm Ivory Canvas & Soft Pastel Accents from Screenshot 2 & 3) */
 html.light body {
-  background-color: #f7f8fa !important;
-  color: #0f172a !important;
+  background-color: #f6efe9 !important;
+  color: #171717 !important;
 }
 
 html.light .bg-neutral-950 {
-  background-color: #eef2f6 !important;
+  background-color: #f6efe9 !important;
 }
 
 html.light .bg-neutral-900 {
@@ -82,111 +82,121 @@ html.light .bg-neutral-900 {
 }
 
 html.light .bg-neutral-850 {
-  background-color: #e4e8ee !important;
+  background-color: #eee7e0 !important;
 }
 
 html.light .bg-neutral-800 {
-  background-color: #e2e6ea !important;
+  background-color: #e8e0d6 !important;
 }
 
 html.light .bg-neutral-750 {
-  background-color: #d6dbe2 !important;
+  background-color: #ded6cc !important;
 }
 
 html.light .bg-neutral-700 {
-  background-color: #c9d0d9 !important;
+  background-color: #d1c7bc !important;
 }
 
 html.light .hover\:bg-neutral-850:hover {
-  background-color: #e4e8ee !important;
+  background-color: #eee7e0 !important;
 }
 
 html.light .hover\:bg-neutral-800:hover {
-  background-color: #e2e6ea !important;
+  background-color: #e8e0d6 !important;
 }
 
 html.light .hover\:bg-neutral-750:hover {
-  background-color: #d6dbe2 !important;
+  background-color: #ded6cc !important;
 }
 
 html.light .hover\:bg-neutral-700:hover {
-  background-color: #c9d0d9 !important;
+  background-color: #d1c7bc !important;
 }
 
 html.light .hover\:bg-neutral-900:hover {
-  background-color: #f1f4f8 !important;
+  background-color: #f8f3ed !important;
 }
 
 html.light .text-neutral-100 {
-  color: #0f172a !important;
+  color: #171717 !important;
 }
 
 html.light .text-neutral-200 {
-  color: #1e293b !important;
+  color: #27272a !important;
 }
 
 html.light .text-neutral-300 {
-  color: #334155 !important;
+  color: #3f3f46 !important;
 }
 
 html.light .text-neutral-400 {
-  color: #64748b !important;
+  color: #52525b !important;
 }
 
 html.light .text-neutral-500 {
-  color: #94a3b8 !important;
+  color: #71717a !important;
 }
 
 html.light .hover\:text-neutral-100:hover {
-  color: #0f172a !important;
+  color: #171717 !important;
 }
 
 html.light .hover\:text-neutral-200:hover {
-  color: #1e293b !important;
+  color: #27272a !important;
 }
 
 html.light .hover\:text-white:hover {
-  color: #0f172a !important;
+  color: #171717 !important;
 }
 
 html.light input {
-  color: #0f172a !important;
+  color: #171717 !important;
 }
 
 html.light input::placeholder {
-  color: #94a3b8 !important;
+  color: #71717a !important;
 }
 
 html.light .bg-black\/80 {
-  background-color: rgba(15, 23, 42, 0.45) !important;
+  background-color: rgba(23, 23, 23, 0.45) !important;
 }
 
 html.light .bg-white\/10 {
-  background-color: rgba(15, 23, 42, 0.06) !important;
+  background-color: rgba(23, 23, 23, 0.05) !important;
 }
 
-html.light .bg-neutral-900\/80 {
-  background-color: rgba(255, 255, 255, 0.88) !important;
-}
-
-html.light .bg-neutral-900\/90 {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-}
-
+html.light .bg-neutral-900\/80,
+html.light .bg-neutral-900\/90,
 html.light .bg-neutral-900\/95 {
-  background-color: rgba(255, 255, 255, 0.96) !important;
+  background-color: #ffffff !important;
+  color: #171717 !important;
 }
 
 html.light .bg-neutral-100 {
-  background-color: #0f172a !important;
+  background-color: #171717 !important;
   color: #ffffff !important;
 }
 
 html.light .bg-neutral-100:hover {
-  background-color: #1e293b !important;
+  background-color: #27272a !important;
 }
 
 html.light .bg-neutral-100.text-neutral-950,
-html.light .bg-neutral-100 .text-neutral-950 {
+html.light .bg-neutral-100 .text-neutral-950,
+html.light .bg-neutral-100 * {
   color: #ffffff !important;
+}
+
+/* Dynamic Illustration Switching */
+html.light .illustration-windows-light {
+  display: block !important;
+}
+html.light .illustration-windows-dark {
+  display: none !important;
+}
+html:not(.light) .illustration-windows-light {
+  display: none !important;
+}
+html:not(.light) .illustration-windows-dark {
+  display: block !important;
 }

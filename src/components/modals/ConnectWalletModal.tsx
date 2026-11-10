@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { useSavings } from '../../context/SavingsContext';
@@ -24,6 +25,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
     connectWallet,
     disconnectWallet,
   } = useSavings();
+  const navigate = useNavigate();
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string>('MetaMask and EVM');
@@ -33,7 +35,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
   const providers = [
     {
       name: 'MetaMask and EVM',
-      desc: 'Live Sign In With Ethereum authentication for instant non custodial settlement',
+      desc: 'Sign in with your Ethereum or EVM wallet for non custodial settlement',
       icon: Wallet01Icon,
       accentColor: 'text-emerald-400',
     },
@@ -45,7 +47,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
     },
     {
       name: 'Ledger Hardware',
-      desc: 'Hardware cold storage connection for institutional level asset security',
+      desc: 'Cold storage connection for maximum asset security',
       icon: Shield01Icon,
       accentColor: 'text-blue-400',
     },
@@ -104,8 +106,8 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
                     Connected via {walletProvider || 'Nimiq Hub'}
                   </span>
                 </div>
-                <span className="text-2xs text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full">
-                  PoS Mainnet Ready
+                <span className="text-2xs text-emerald-400 font-light">
+                  Mainnet Ready
                 </span>
               </div>
 
@@ -150,6 +152,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
                 onClick={() => {
                   disconnectWallet();
                   onClose();
+                  navigate('/');
                 }}
               >
                 Disconnect

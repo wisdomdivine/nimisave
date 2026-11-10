@@ -188,9 +188,9 @@ export const DashboardPage: React.FC = () => {
               <span className="text-xs text-neutral-400">
                 Saving Streak
               </span>
-              <FireIcon size={16} className="text-amber-400" />
+              <FireIcon size={16} className="text-neutral-300" />
             </div>
-            <div className="text-2xl sm:text-3xl text-amber-400 font-light">
+            <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
               {streak.currentDays} Days
             </div>
             <span className="text-xs text-neutral-400">

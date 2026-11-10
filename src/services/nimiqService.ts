@@ -49,8 +49,12 @@ export const executeSettlement = async (
   amount: number,
   currency: Currency = 'USDT'
 ): Promise<NimiqTxResult> => {
+  if (!senderAddress) {
+    throw new Error('Wallet connection required for settlement');
+  }
+
   const timestamp = new Date().toISOString();
-  const rawPayload = `${senderAddress}:${recipientAddress}:${amount}:${currency}:${timestamp}:${Math.random()}`;
+  const rawPayload = `${senderAddress}:${recipientAddress || senderAddress}:${amount}:${currency}:${timestamp}:${Math.random()}`;
   const encoder = new TextEncoder();
   const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(rawPayload));
   const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -61,7 +65,7 @@ export const executeSettlement = async (
 
   return {
     txHash,
-    sender: senderAddress || 'NQ33 Y66V 8U30 G98N R9T4 Y9EB 8X5L 4D94 9NFE',
+    sender: senderAddress,
     recipient: recipientAddress || senderAddress,
     amount,
     currency,
@@ -70,14 +74,6 @@ export const executeSettlement = async (
     gasSponsored: true,
     timestamp,
   };
-};
-
-export const simulateNimiqSettlement = async (
-  recipientAddress: string,
-  amount: number,
-  currency: Currency = 'USDT'
-): Promise<NimiqTxResult> => {
-  return executeSettlement(recipientAddress, recipientAddress, amount, currency);
 };
 
 export const calculateWithdrawalDetails = (

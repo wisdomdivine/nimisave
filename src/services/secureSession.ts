@@ -6,6 +6,7 @@ import { seal, unseal, defaults } from 'iron-webcrypto';
  * Strictly never hardcoded and never uses fallback string operators.
  */
 let ephemeralSessionKey: string | null = null;
+const EPHEMERAL_KEY_STORAGE = 'nimisave_k_mat';
 
 function getSessionSecret(): string {
   const envSecret = import.meta.env.VITE_SESSION_SECRET;
@@ -15,11 +16,23 @@ function getSessionSecret(): string {
   }
 
   if (!ephemeralSessionKey) {
+    try {
+      const existing = sessionStorage.getItem(EPHEMERAL_KEY_STORAGE);
+      if (existing && existing.length >= 64) {
+        ephemeralSessionKey = existing;
+        return ephemeralSessionKey;
+      }
+    } catch {}
+
     const randomBytes = new Uint8Array(32);
     crypto.getRandomValues(randomBytes);
     ephemeralSessionKey = Array.from(randomBytes, (b) =>
       b.toString(16).padStart(2, '0')
     ).join('');
+
+    try {
+      sessionStorage.setItem(EPHEMERAL_KEY_STORAGE, ephemeralSessionKey);
+    } catch {}
   }
 
   return ephemeralSessionKey;

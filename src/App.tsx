@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SavingsProvider, useSavings } from './context/SavingsContext';
@@ -38,6 +38,30 @@ const GlobalModals: React.FC = () => {
   );
 };
 
+const ProtectedRoute: React.FC = () => {
+  const { isWalletConnected, isSessionLoading, openConnectModal } = useSavings();
+
+  useEffect(() => {
+    if (!isSessionLoading && !isWalletConnected) {
+      openConnectModal();
+    }
+  }, [isSessionLoading, isWalletConnected, openConnectModal]);
+
+  if (isSessionLoading) {
+    return (
+      <div className="min-h-screen w-full bg-neutral-950 text-neutral-400 flex items-center justify-center text-xs font-light">
+        Verifying session
+      </div>
+    );
+  }
+
+  if (!isWalletConnected) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Layout />;
+};
+
 export const App: React.FC = () => {
   return (
     <ErrorBoundary>
@@ -49,8 +73,8 @@ export const App: React.FC = () => {
               {/* Standalone Minimalist Landing Page */}
               <Route path="/" element={<LandingPage />} />
 
-              {/* Main In-App Dashboard & Tool Routes */}
-              <Route element={<Layout />}>
+              {/* Authenticated In-App Dashboard & Tool Routes */}
+              <Route element={<ProtectedRoute />}>
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="prompts" element={<HobbyPromptsPage />} />
                 <Route path="communities" element={<CommunitiesPage />} />

@@ -76,7 +76,7 @@ export const CommunitiesPage: React.FC = () => {
       {/* Streak Dashboard Card */}
       <section className="bg-neutral-900 p-6 sm:p-8 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4 sm:gap-5">
-          <div className="p-4 bg-amber-950/40 text-amber-400 rounded-2xl flex items-center justify-center">
+          <div className="p-4 bg-neutral-950 text-neutral-200 rounded-2xl flex items-center justify-center">
             <FireIcon size={32} />
           </div>
           <div className="flex flex-col gap-1">
@@ -84,12 +84,9 @@ export const CommunitiesPage: React.FC = () => {
               <span className="text-2xl sm:text-3xl text-neutral-100 font-light">
                 {streak.currentDays} Day Streak
               </span>
-              <span className="text-2xs bg-amber-950/60 text-amber-400 px-2.5 py-0.5 rounded-full">
-                Active Discipline
-              </span>
             </div>
             <p className="text-xs text-neutral-400 font-light">
-              Personal record {streak.longestDays} days. Every voluntary contribution keeps your streak burning bright.
+              Personal record {streak.longestDays} days. Every voluntary contribution keeps your streak active.
             </p>
           </div>
         </div>
@@ -178,55 +175,56 @@ export const CommunitiesPage: React.FC = () => {
             </h2>
           </div>
           <span className="text-xs text-neutral-400">
-            Updated Daily via Nimiq Settlement Relayer
+            Updated Daily on Nimiq Network
           </span>
         </div>
 
         <div className="bg-neutral-900 p-4 sm:p-6 rounded-3xl flex flex-col gap-3">
-          {displayedCommunity.leaderboard.map((entry) => {
-            const isMe = entry.isCurrentUser;
-            return (
-              <div
-                key={entry.rank}
-                className={`p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-colors ${
-                  isMe
-                    ? 'bg-neutral-800 text-neutral-100'
-                    : 'bg-neutral-950 text-neutral-300 hover:bg-neutral-850'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-8 flex items-center justify-center flex-shrink-0">
-                    {getRankBadge(entry.rank)}
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm ${isMe ? 'text-neutral-100 font-medium' : 'text-neutral-200'}`}>
-                        {entry.username}
-                      </span>
-                      {isMe && (
-                        <span className="text-2xs bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full">
-                          You
-                        </span>
-                      )}
+          {displayedCommunity.leaderboard.length === 0 ? (
+            <div className="text-center py-6 text-xs text-neutral-400 font-light">
+              No savers recorded in this club yet. Create a goal box or make a deposit to lead this club.
+            </div>
+          ) : (
+            displayedCommunity.leaderboard.map((entry) => {
+              const isMe = entry.isCurrentUser;
+              return (
+                <div
+                  key={entry.rank}
+                  className={`p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-colors ${
+                    isMe
+                      ? 'bg-neutral-800 text-neutral-100'
+                      : 'bg-neutral-950 text-neutral-300 hover:bg-neutral-850'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 flex items-center justify-center flex-shrink-0">
+                      {getRankBadge(entry.rank)}
                     </div>
-                    <span className="text-neutral-400 text-2xs">
-                      {entry.badge}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm ${isMe ? 'text-neutral-100 font-medium' : 'text-neutral-200'}`}>
+                          {entry.username}
+                        </span>
+                      </div>
+                      <span className="text-neutral-400 text-2xs">
+                        {entry.badge}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8 pt-1 sm:pt-0">
+                    <div className="flex items-center gap-1.5 text-neutral-300">
+                      <FireIcon size={14} />
+                      <span>{entry.streakDays} Day Streak</span>
+                    </div>
+                    <span className="text-neutral-100 text-sm font-medium">
+                      ${entry.totalSavedUsdt.toLocaleString()} USDT
                     </span>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8 pt-1 sm:pt-0">
-                  <div className="flex items-center gap-1.5 text-amber-400">
-                    <FireIcon size={14} />
-                    <span>{entry.streakDays} Day Streak</span>
-                  </div>
-                  <span className="text-neutral-100 text-sm font-medium">
-                    ${entry.totalSavedUsdt.toLocaleString()} USDT
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </section>
     </motion.div>

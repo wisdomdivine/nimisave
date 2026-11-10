@@ -132,7 +132,6 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           suffixText={selectedCurrency}
           value={amountStr}
           onChange={(e) => setAmountStr(e.target.value)}
-          placeholder={selectedCurrency === 'USDT' ? 'For example 50' : 'For example 15000'}
         />
 
         <div className="flex flex-col gap-2.5">
