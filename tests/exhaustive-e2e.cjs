@@ -213,8 +213,11 @@ async function runTestSuite() {
       if (option) option.click();
     });
 
-    // Wait for SIWE authentication and iron session sealing
-    await new Promise(r => setTimeout(r, 1500));
+    // Wait for SIWE authentication, iron session sealing, and UI transition
+    await page.waitForFunction(() => {
+      const btn = Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('0x'));
+      return btn !== undefined && btn !== null;
+    }, { timeout: 15000 });
 
     const sessionToken = await page.evaluate(() => {
       return sessionStorage.getItem('nimisave_auth_session');
