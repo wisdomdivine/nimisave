@@ -133,7 +133,7 @@ export const WalletPage: React.FC = () => {
         </h3>
         <p className="text-xs text-neutral-300 leading-relaxed">
           Unlike traditional lock up products that impose punitive charges when users need their own money,
-          Gammy provides transparent emergency rules. Every user receives free emergency withdrawals. If additional
+          Nimisave provides transparent emergency rules. Every user receives free emergency withdrawals. If additional
           early access is required beyond the free allowance, fees are strictly capped at fifteen dollars rather than
           an unbounded percentage of your hard earned savings.
         </p>

@@ -11,7 +11,7 @@ export const Header: React.FC = () => {
     <header className="w-full bg-neutral-950 py-5 sm:py-6 px-4 sm:px-8 lg:px-12 flex items-center justify-between">
       <NavLink to="/" className="flex items-center gap-2.5 text-xl text-neutral-100 cursor-pointer">
         <Logo size={22} className="text-neutral-100" />
-        <span>Gammy</span>
+        <span>Nimisave</span>
       </NavLink>
 
       <div className="flex items-center gap-4 sm:gap-6">

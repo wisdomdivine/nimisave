@@ -1,4 +1,4 @@
-# gammy
+# Nimisave
 
 Gamified savings platform with interactive 3D goal stages and Nimiq settlement.
 

@@ -157,41 +157,41 @@ const SavingsContext = createContext<SavingsContextType | undefined>(undefined);
 
 export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [goals, setGoals] = useState<SavingsGoal[]>(() => {
-    const saved = localStorage.getItem('gammy_goals');
+    const saved = localStorage.getItem('nimisave_goals') || localStorage.getItem('gammy_goals');
     return saved ? JSON.parse(saved) : defaultGoals;
   });
 
   const [activeGoalId, setActiveGoalId] = useState<string>('goal_house');
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('gammy_transactions');
+    const saved = localStorage.getItem('nimisave_transactions') || localStorage.getItem('gammy_transactions');
     return saved ? JSON.parse(saved) : defaultTransactions;
   });
 
   const [prompts, setPrompts] = useState<HobbyPrompt[]>(() => {
-    const saved = localStorage.getItem('gammy_prompts');
+    const saved = localStorage.getItem('nimisave_prompts') || localStorage.getItem('gammy_prompts');
     return saved ? JSON.parse(saved) : defaultPrompts;
   });
 
   const [wallet, setWallet] = useState<WalletInfo>(() => {
-    const saved = localStorage.getItem('gammy_wallet');
+    const saved = localStorage.getItem('nimisave_wallet') || localStorage.getItem('gammy_wallet');
     return saved ? JSON.parse(saved) : defaultWallet;
   });
 
   useEffect(() => {
-    localStorage.setItem('gammy_goals', JSON.stringify(goals));
+    localStorage.setItem('nimisave_goals', JSON.stringify(goals));
   }, [goals]);
 
   useEffect(() => {
-    localStorage.setItem('gammy_transactions', JSON.stringify(transactions));
+    localStorage.setItem('nimisave_transactions', JSON.stringify(transactions));
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem('gammy_prompts', JSON.stringify(prompts));
+    localStorage.setItem('nimisave_prompts', JSON.stringify(prompts));
   }, [prompts]);
 
   useEffect(() => {
-    localStorage.setItem('gammy_wallet', JSON.stringify(wallet));
+    localStorage.setItem('nimisave_wallet', JSON.stringify(wallet));
   }, [wallet]);
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) || goals[0] || null;
