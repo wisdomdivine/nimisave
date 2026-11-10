@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <rect width="100" height="100" rx="24" fill="#0D0D0D"/>
+  <!-- Outer milestone arc -->
+  <circle cx="50" cy="50" r="40" stroke="#F5F5F5" stroke-width="6" stroke-linecap="round" stroke-dasharray="180 70" stroke-dashoffset="25"/>
+  <!-- Inner core ring -->
+  <circle cx="50" cy="42" r="14" stroke="#F5F5F5" stroke-width="6"/>
+  <!-- Descending discipline anchor -->
+  <path d="M 64 42 V 61 C 64 71 56 77 47 77 C 38 77 34 72 34 68" stroke="#F5F5F5" stroke-width="6" stroke-linecap="round"/>
+</svg>
