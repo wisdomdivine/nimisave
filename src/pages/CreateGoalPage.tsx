@@ -128,6 +128,8 @@ export const CreateGoalPage: React.FC = () => {
             type="number"
             min="10"
             required
+            prefixText="$"
+            suffixText="USD"
             value={targetAmountStr}
             onChange={(e) => setTargetAmountStr(e.target.value)}
           />
@@ -136,6 +138,8 @@ export const CreateGoalPage: React.FC = () => {
             label="Initial Contribution in Dollars"
             type="number"
             min="0"
+            prefixText="$"
+            suffixText="USD"
             value={initialDepositStr}
             onChange={(e) => setInitialDepositStr(e.target.value)}
           />
@@ -146,6 +150,7 @@ export const CreateGoalPage: React.FC = () => {
           type="number"
           min="1"
           max="60"
+          suffixText="Months"
           value={deadlineMonthsStr}
           onChange={(e) => setDeadlineMonthsStr(e.target.value)}
         />

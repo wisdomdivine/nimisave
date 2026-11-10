@@ -63,6 +63,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           min="1"
           max={goal.currentAmount}
           step="any"
+          prefixText="$"
+          suffixText="USD"
           value={amountStr}
           onChange={(e) => setAmountStr(e.target.value)}
           placeholder="For example 50"

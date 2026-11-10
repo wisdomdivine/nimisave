@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
+import { Select } from '../components/common/Select';
 import { HobbyCategory } from '../types';
 import { FootballIcon, Basketball01Icon, GameController01Icon, Coins01Icon } from 'hugeicons-react';
 
@@ -103,20 +104,19 @@ export const HobbyPromptsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-neutral-300">
+          <span className="text-xs text-neutral-300 whitespace-nowrap">
             Deposit Target:
           </span>
-          <select
+          <Select
+            options={goals.map((g) => ({
+              value: g.id,
+              label: g.title,
+              description: `Target $${g.targetAmount.toLocaleString()}`,
+            }))}
             value={targetGoalId}
-            onChange={(e) => setTargetGoalId(e.target.value)}
-            className="bg-neutral-900 text-neutral-200 px-4 py-2 text-xs rounded-xl outline-none cursor-pointer"
-          >
-            {goals.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.title}
-              </option>
-            ))}
-          </select>
+            onChange={setTargetGoalId}
+            className="w-64"
+          />
         </div>
       </div>
 
