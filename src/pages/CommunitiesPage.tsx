@@ -226,3 +226,4 @@ export const CommunitiesPage: React.FC = () => {
     </motion.div>
   );
 };
+

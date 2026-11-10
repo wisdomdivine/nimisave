@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Card } from '../common/Card';
 import { useSavings } from '../../context/SavingsContext';
 import { GoalCategory, Currency, GoalType } from '../../types';
 import {
@@ -166,18 +165,25 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
                 const isSelected = category === c.key;
 
                 return (
-                  <Card
+                  <button
                     key={c.key}
+                    type="button"
                     onClick={() => handleCategoryChange(c.key)}
-                    className={`p-4 sm:p-5 flex flex-col gap-2 cursor-pointer transition-colors ${
+                    className={`w-full text-left p-4 sm:p-5 rounded-2xl cursor-pointer transition-colors flex flex-col gap-2 ${
                       isSelected
-                        ? 'bg-neutral-800'
-                        : 'bg-neutral-950 hover:bg-neutral-850'
+                        ? 'bg-neutral-800 text-neutral-100'
+                        : 'bg-neutral-950 text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${isSelected ? 'bg-neutral-700 text-neutral-100' : 'bg-neutral-900 text-neutral-300'}`}>
+                        <div
+                          className={`p-2 rounded-xl transition-colors ${
+                            isSelected
+                              ? 'bg-neutral-700 text-neutral-100'
+                              : 'bg-neutral-900 text-neutral-400'
+                          }`}
+                        >
                           <IconComp size={18} />
                         </div>
                         <span className="text-sm text-neutral-100 font-medium">
@@ -185,20 +191,20 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
                         </span>
                       </div>
                       {isSelected ? (
-                        <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
                           <CheckmarkCircle01Icon size={16} />
                           <span>Selected</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-neutral-500 font-light">
                           Select
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-neutral-400 leading-relaxed font-light pt-1">
+                    <p className="text-xs text-neutral-400 leading-relaxed font-light pt-0.5">
                       {c.desc}
                     </p>
-                  </Card>
+                  </button>
                 );
               })}
             </div>

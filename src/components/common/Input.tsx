@@ -5,6 +5,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   prefixText?: string;
   suffixText?: string;
+  containerClassName?: string;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -13,17 +14,23 @@ export const Input: React.FC<InputProps> = ({
   prefixText,
   suffixText,
   className = '',
+  containerClassName = '',
   ...props
 }) => {
+  const hasBg = /(^|\s)bg-/.test(containerClassName);
+  const bgClass = hasBg ? '' : 'bg-neutral-800';
+
   return (
     <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label className="text-xs text-neutral-400">
+        <label className="text-xs text-neutral-400 font-medium">
           {label}
         </label>
       )}
 
-      <div className="relative flex items-center w-full bg-neutral-900 rounded-xl px-4 py-3 transition-colors focus-within:bg-neutral-850">
+      <div
+        className={`relative flex items-center w-full ${bgClass} rounded-xl px-4 py-3.5 transition-colors focus-within:bg-neutral-700 hover:bg-neutral-750 ${containerClassName}`.trim()}
+      >
         {prefixText && (
           <span className="text-sm text-neutral-400 mr-2 select-none">
             {prefixText}

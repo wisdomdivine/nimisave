@@ -176,3 +176,4 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
     </Modal>
   );
 };
+
