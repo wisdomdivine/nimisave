@@ -4,7 +4,14 @@ import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { formatNimiqAddress, nimToUsd } from '../services/nimiqService';
-import { Wallet01Icon, Coins01Icon } from 'hugeicons-react';
+import {
+  Wallet01Icon,
+  Coins01Icon,
+  Copy01Icon,
+  CheckmarkCircle01Icon,
+  ArrowDownLeft01Icon,
+  ArrowUpRight01Icon,
+} from 'hugeicons-react';
 
 export const WalletPage: React.FC = () => {
   const { wallet, transactions } = useSavings();
@@ -98,8 +105,23 @@ export const WalletPage: React.FC = () => {
           <span className="text-xs text-neutral-200 break-all">
             {formatNimiqAddress(wallet.nimiqAddress)}
           </span>
-          <Button variant="secondary" size="sm" onClick={handleCopy}>
-            {copied ? 'Copied to Clipboard' : 'Copy Address'}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleCopy}
+            className="flex items-center gap-2"
+          >
+            {copied ? (
+              <>
+                <CheckmarkCircle01Icon size={15} />
+                <span>Copied to Clipboard</span>
+              </>
+            ) : (
+              <>
+                <Copy01Icon size={15} />
+                <span>Copy Address</span>
+              </>
+            )}
           </Button>
         </div>
       </Card>
@@ -124,32 +146,42 @@ export const WalletPage: React.FC = () => {
         </h3>
 
         <div className="bg-neutral-900 p-6 rounded-3xl flex flex-col gap-3">
-          {transactions.map((tx) => (
-            <div
-              key={tx.id}
-              className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-3 text-xs text-neutral-200"
-            >
-              <div className="flex flex-col gap-1">
-                <span className="text-neutral-100 text-sm">{tx.goalTitle}</span>
-                <span className="text-neutral-300 capitalize">{tx.note || tx.type}</span>
-                <span className="text-neutral-400 text-2xs break-all">
-                  hash {tx.txHash}
-                </span>
-              </div>
+          {transactions.map((tx) => {
+            const isWithdrawal = tx.type === 'withdrawal';
+            const TxIcon = isWithdrawal ? ArrowUpRight01Icon : ArrowDownLeft01Icon;
 
-              <div className="flex flex-col md:items-end gap-1">
-                <span className="text-neutral-100 text-sm">
-                  ${tx.amount} {tx.type === 'withdrawal' ? 'out' : 'in'}
-                </span>
-                <span className="text-neutral-300">
-                  {tx.date}
-                </span>
-                <span className="text-neutral-300">
-                  Fee {tx.fee === 0 ? '0.00 (Sponsored)' : `$${tx.fee}`}
-                </span>
+            return (
+              <div
+                key={tx.id}
+                className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-3 text-xs text-neutral-200"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 bg-neutral-950 rounded-xl flex items-center justify-center text-neutral-300">
+                    <TxIcon size={18} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-neutral-100 text-sm">{tx.goalTitle}</span>
+                    <span className="text-neutral-300 capitalize">{tx.note || tx.type}</span>
+                    <span className="text-neutral-400 text-2xs break-all">
+                      hash {tx.txHash}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:items-end gap-1">
+                  <span className="text-neutral-100 text-sm">
+                    ${tx.amount} {isWithdrawal ? 'out' : 'in'}
+                  </span>
+                  <span className="text-neutral-300">
+                    {tx.date}
+                  </span>
+                  <span className="text-neutral-300">
+                    Fee {tx.fee === 0 ? '0.00 (Sponsored)' : `$${tx.fee}`}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </motion.div>
