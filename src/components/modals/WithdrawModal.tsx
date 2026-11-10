@@ -3,8 +3,8 @@ import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { useSavings } from '../../context/SavingsContext';
-import { calculateWithdrawalDetails } from '../../services/nimiqService';
-import { SavingsGoal } from '../../types';
+import { calculateWithdrawalDetails, formatAmount, usdtToNim, nimToUsdt } from '../../services/nimiqService';
+import { SavingsGoal, Currency } from '../../types';
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -14,31 +14,47 @@ interface WithdrawModalProps {
 
 export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, goal }) => {
   const { withdraw, wallet } = useSavings();
-  const [amountStr, setAmountStr] = useState<string>('50');
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>(goal?.currency || 'USDT');
+  const [amountStr, setAmountStr] = useState<string>(goal?.currency === 'NIM' ? '25000' : '50');
   const [isEmergency, setIsEmergency] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
 
   if (!goal) return null;
 
+  const handleCurrencySwitch = (newCur: Currency) => {
+    setSelectedCurrency(newCur);
+    setAmountStr(newCur === 'NIM' ? '25000' : '50');
+  };
+
   const amount = parseFloat(amountStr) || 0;
+
+  // Max available in chosen withdrawal currency
+  const maxAvailable =
+    selectedCurrency === goal.currency
+      ? goal.currentAmount
+      : selectedCurrency === 'NIM'
+      ? usdtToNim(goal.currentAmount)
+      : nimToUsdt(goal.currentAmount);
+
   const details = calculateWithdrawalDetails(
     amount,
+    selectedCurrency,
     isEmergency,
     wallet.freeEmergencyWithdrawalsRemaining
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount <= 0 || amount > goal.currentAmount) return;
+    if (amount <= 0 || amount > maxAvailable) return;
 
     setIsSubmitting(true);
     setMessage('');
 
     try {
-      const ok = await withdraw(goal.id, amount, isEmergency, 'User initiated withdrawal');
+      const ok = await withdraw(goal.id, amount, selectedCurrency, isEmergency, 'User initiated withdrawal');
       if (ok) {
-        setMessage(`Withdrawal of ${details.netAmount} dollars processed to your wallet`);
+        setMessage(`Withdrawal of ${formatAmount(details.netAmount, selectedCurrency)} processed to your wallet`);
         setTimeout(() => {
           setMessage('');
           setIsSubmitting(false);
@@ -53,36 +69,80 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Withdraw from ${goal.title}`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6">
-        <div className="text-xs text-neutral-400">
-          Available in this goal box: {goal.currentAmount} dollars
+        <div className="flex flex-col gap-1 text-xs text-neutral-400">
+          <span>Available in this goal box</span>
+          <span className="text-neutral-100 text-sm font-medium">
+            {formatAmount(goal.currentAmount, goal.currency)}
+            {goal.currency === 'USDT' && (
+              <span className="text-neutral-400 text-xs ml-2">
+                (≈ {usdtToNim(goal.currentAmount).toLocaleString()} NIM)
+              </span>
+            )}
+            {goal.currency === 'NIM' && (
+              <span className="text-neutral-400 text-xs ml-2">
+                (≈ {nimToUsdt(goal.currentAmount).toLocaleString()} USDT)
+              </span>
+            )}
+          </span>
+        </div>
+
+        {/* Currency selection */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs text-neutral-400">
+            Withdrawal payout currency
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleCurrencySwitch('USDT')}
+              className={`py-2.5 px-3 text-xs rounded-xl cursor-pointer transition-colors ${
+                selectedCurrency === 'USDT'
+                  ? 'bg-neutral-800 text-neutral-100'
+                  : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              USDT Stablecoin
+            </button>
+            <button
+              type="button"
+              onClick={() => handleCurrencySwitch('NIM')}
+              className={`py-2.5 px-3 text-xs rounded-xl cursor-pointer transition-colors ${
+                selectedCurrency === 'NIM'
+                  ? 'bg-neutral-800 text-neutral-100'
+                  : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              NIM Native Token
+            </button>
+          </div>
         </div>
 
         <Input
-          label="Amount to withdraw in dollars"
+          label={`Amount to withdraw in ${selectedCurrency}`}
           type="number"
           min="1"
-          max={goal.currentAmount}
+          max={maxAvailable}
           step="any"
-          prefixText="$"
-          suffixText="USD"
+          prefixText={selectedCurrency === 'USDT' ? '$' : ''}
+          suffixText={selectedCurrency}
           value={amountStr}
           onChange={(e) => setAmountStr(e.target.value)}
-          placeholder="For example 50"
+          placeholder={selectedCurrency === 'USDT' ? 'For example 50' : 'For example 15000'}
         />
 
         <div className="flex flex-col gap-2.5">
           <label className="text-xs text-neutral-400">
-            Withdrawal category
+            Withdrawal terms
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setIsEmergency(true)}
               className={`p-4 text-left transition-colors rounded-2xl cursor-pointer ${
-                isEmergency ? 'bg-neutral-850 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
+                isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <div className="text-sm text-neutral-100">Emergency access</div>
+              <div className="text-sm text-neutral-100 font-medium">Emergency access</div>
               <div className="text-xs text-neutral-400 mt-1">
                 {wallet.freeEmergencyWithdrawalsRemaining} free emergency passes left
               </div>
@@ -92,10 +152,10 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
               type="button"
               onClick={() => setIsEmergency(false)}
               className={`p-4 text-left transition-colors rounded-2xl cursor-pointer ${
-                !isEmergency ? 'bg-neutral-850 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
+                !isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <div className="text-sm text-neutral-100">Standard early unlock</div>
+              <div className="text-sm text-neutral-100 font-medium">Standard early unlock</div>
               <div className="text-xs text-neutral-400 mt-1">
                 Two percent fee capped at fifteen dollars
               </div>
@@ -103,35 +163,31 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           </div>
         </div>
 
-        <div className="bg-neutral-950 p-4 sm:p-5 rounded-2xl flex flex-col gap-2">
-          <div className="flex justify-between text-xs text-neutral-400">
+        {/* Breakdown Card */}
+        <div className="bg-neutral-950 p-4 sm:p-5 rounded-2xl flex flex-col gap-2 text-xs">
+          <div className="flex justify-between text-neutral-400">
             <span>Requested amount</span>
-            <span className="text-neutral-200">{details.grossAmount} dollars</span>
+            <span className="text-neutral-200">{formatAmount(details.grossAmount, selectedCurrency)}</span>
           </div>
-          <div className="flex justify-between text-xs text-neutral-400">
-            <span>Administrative deduction</span>
-            <span className="text-neutral-200">
-              {details.fee === 0 ? 'Zero dollars' : `${details.fee} dollars`}
+          <div className="flex justify-between text-neutral-400">
+            <span>Fee applied</span>
+            <span className={details.fee === 0 ? 'text-emerald-400' : 'text-neutral-200'}>
+              {details.fee === 0 ? 'Zero fee (Emergency pass)' : formatAmount(details.fee, selectedCurrency)}
             </span>
           </div>
-          <div className="flex justify-between text-xs text-neutral-400">
-            <span>Net funds returned to you</span>
-            <span className="text-neutral-100 text-sm">
-              {details.netAmount} dollars
-            </span>
+          <div className="flex justify-between text-neutral-400 pt-2 bg-neutral-900 p-2.5 rounded-xl">
+            <span className="text-neutral-200 font-medium">Net transfer to wallet</span>
+            <span className="text-neutral-100 font-medium">{formatAmount(details.netAmount, selectedCurrency)}</span>
           </div>
-          <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
-            {details.explanation}
-          </p>
         </div>
 
         {message && (
-          <div className="p-4 bg-neutral-800 rounded-xl text-xs text-neutral-200 text-center">
+          <div className="bg-neutral-800 p-4 rounded-xl text-xs text-neutral-100 text-center">
             {message}
           </div>
         )}
 
-        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-4 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-4 pt-1">
           <Button
             type="button"
             variant="ghost"
@@ -143,11 +199,11 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           </Button>
           <Button
             type="submit"
-            variant="secondary"
-            disabled={isSubmitting || amount <= 0 || amount > goal.currentAmount}
+            variant="primary"
+            disabled={isSubmitting || amount <= 0 || amount > maxAvailable}
             className="w-full sm:w-auto"
           >
-            {isSubmitting ? 'Settling with Nimiq...' : 'Confirm withdrawal'}
+            {isSubmitting ? 'Transferring via Nimiq...' : `Confirm Withdrawal`}
           </Button>
         </div>
       </form>

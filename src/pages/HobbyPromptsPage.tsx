@@ -5,17 +5,40 @@ import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Select } from '../components/common/Select';
 import { HobbyCategory } from '../types';
-import { FootballIcon, Basketball01Icon, GameController01Icon, Coins01Icon } from 'hugeicons-react';
+import { formatAmount } from '../services/nimiqService';
+import {
+  FootballIcon,
+  Basketball01Icon,
+  GameController01Icon,
+  Coins01Icon,
+  CheckmarkCircle01Icon,
+} from 'hugeicons-react';
 
 export const HobbyPromptsPage: React.FC = () => {
-  const { prompts, goals, acceptPrompt } = useSavings();
+  const {
+    prompts,
+    goals,
+    acceptPrompt,
+    selectedHobby,
+    selectedTopic,
+    setHobbyPreference,
+  } = useSavings();
+
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [targetGoalId, setTargetGoalId] = useState<string>(goals[0]?.id || '');
   const [actionNotice, setActionNotice] = useState<string>('');
 
-  const filteredPrompts = selectedCategory === 'all'
-    ? prompts
-    : prompts.filter((p) => p.hobbyCategory === selectedCategory);
+  const topicOptions: Record<HobbyCategory, string[]> = {
+    football: ['Arsenal', 'Real Madrid', 'Chelsea', 'Barcelona', 'Man City'],
+    basketball: ['Golden State', 'Lakers', 'Celtics', 'Bucks'],
+    gaming: ['Squad Raid', 'Valorant', 'Apex Legends', 'CS2'],
+    crypto: ['Nimiq PoS', 'Staking Run', 'Halving Cycle'],
+  };
+
+  const filteredPrompts =
+    selectedCategory === 'all'
+      ? prompts
+      : prompts.filter((p) => p.hobbyCategory === selectedCategory);
 
   const getHobbyIcon = (cat: HobbyCategory) => {
     switch (cat) {
@@ -29,21 +52,6 @@ export const HobbyPromptsPage: React.FC = () => {
         return <Coins01Icon size={18} className="text-neutral-300" />;
       default:
         return null;
-    }
-  };
-
-  const getTagStyle = (cat: HobbyCategory) => {
-    switch (cat) {
-      case 'football':
-        return 'bg-red-950/60 text-red-300';
-      case 'basketball':
-        return 'bg-amber-950/60 text-amber-300';
-      case 'gaming':
-        return 'bg-purple-950/60 text-purple-300';
-      case 'crypto':
-        return 'bg-emerald-950/60 text-emerald-300';
-      default:
-        return 'bg-neutral-800 text-neutral-300';
     }
   };
 
@@ -72,10 +80,10 @@ export const HobbyPromptsPage: React.FC = () => {
       className="flex flex-col gap-8 sm:gap-10"
     >
       <div className="flex flex-col gap-2.5">
-        <h1 className="text-2xl text-neutral-100">
+        <h1 className="text-2xl text-neutral-100 font-light">
           Hobby Savings Prompts
         </h1>
-        <p className="text-sm text-neutral-300 max-w-3xl leading-relaxed">
+        <p className="text-sm text-neutral-300 max-w-3xl leading-relaxed font-light">
           Connect your daily passions to your savings habits. Receive voluntary nudges
           whenever your football club wins, your squad completes a game quest, or network milestones happen.
         </p>
@@ -83,14 +91,51 @@ export const HobbyPromptsPage: React.FC = () => {
 
       {/* Strict boundary notice */}
       <div className="bg-neutral-900 p-5 sm:p-6 rounded-2xl flex flex-col gap-2">
-        <span className="text-xs text-neutral-200">
+        <span className="text-xs text-neutral-200 font-medium">
           Responsible Financial Design Boundary
         </span>
-        <p className="text-xs text-neutral-300 leading-relaxed">
+        <p className="text-xs text-neutral-300 leading-relaxed font-light">
           These are voluntary savings reminders, not wagers or bets. You never risk money on match outcomes
-          or token price movements. Every dollar you deposit remains one hundred percent your money,
+          or token price movements. Every dollar or token you deposit remains one hundred percent your money,
           secured in your savings box and settled on Nimiq.
         </p>
+      </div>
+
+      {/* Interest and Team customizer */}
+      <div className="bg-neutral-900 p-5 sm:p-6 rounded-2xl flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm text-neutral-100 font-medium">
+              Configure Your Active Passion
+            </h3>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Choose which team or interest generates your voluntary savings boosts
+            </p>
+          </div>
+          <span className="text-xs text-neutral-400">
+            Selected: {selectedTopic}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {topicOptions[selectedHobby].map((topic) => {
+            const isSelected = selectedTopic === topic;
+            return (
+              <button
+                key={topic}
+                type="button"
+                onClick={() => setHobbyPreference(selectedHobby, topic)}
+                className={`px-3 py-1.5 text-xs rounded-xl cursor-pointer transition-colors ${
+                  isSelected
+                    ? 'bg-neutral-100 text-neutral-950'
+                    : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-750'
+                }`}
+              >
+                {topic}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {actionNotice && (
@@ -99,89 +144,98 @@ export const HobbyPromptsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Target box selection and filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
-        <div className="flex flex-wrap items-center gap-2">
-          {['all', 'football', 'basketball', 'gaming', 'crypto'].map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 sm:px-4 py-2 text-xs transition-colors rounded-xl cursor-pointer ${
-                selectedCategory === cat
-                  ? 'bg-neutral-100 text-neutral-950 font-normal'
-                  : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
-              }`}
-            >
-              {categoryLabels[cat]}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <span className="text-xs text-neutral-300 whitespace-nowrap">
-            Deposit Target:
+      {/* Target Goal Destination Selector */}
+      <div className="bg-neutral-900 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-neutral-300">
+            Destination Savings Box
           </span>
+          <span className="text-2xs text-neutral-400">
+            Where your accepted prompt contributions will be deposited
+          </span>
+        </div>
+        <div className="w-full sm:w-72">
           <Select
+            label=""
+            value={targetGoalId}
+            onChange={(val) => setTargetGoalId(val)}
             options={goals.map((g) => ({
               value: g.id,
-              label: g.title,
-              description: `Target $${g.targetAmount.toLocaleString()}`,
+              label: `${g.title} (${formatAmount(g.currentAmount, g.currency)})`,
             }))}
-            value={targetGoalId}
-            onChange={setTargetGoalId}
-            className="w-full sm:w-64"
           />
         </div>
       </div>
 
+      {/* Hobby category filter pills */}
+      <div className="flex flex-wrap items-center gap-2">
+        {Object.entries(categoryLabels).map(([key, label]) => {
+          const isSelected = selectedCategory === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSelectedCategory(key)}
+              className={`py-2 px-4 rounded-xl text-xs cursor-pointer transition-colors ${
+                isSelected
+                  ? 'bg-neutral-100 text-neutral-950'
+                  : 'bg-neutral-900 text-neutral-300 hover:bg-neutral-800'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Prompts list */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {filteredPrompts.map((prompt) => (
           <Card key={prompt.id} className="flex flex-col justify-between gap-5 sm:gap-6">
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   {getHobbyIcon(prompt.hobbyCategory)}
-                  <span className="text-xs text-neutral-300 capitalize">
+                  <span className="text-xs text-neutral-400 capitalize">
                     {prompt.hobbyCategory}
                   </span>
                 </div>
-                <span className={`text-xs px-2.5 py-1 rounded-lg ${getTagStyle(prompt.hobbyCategory)}`}>
+                <span className="text-2xs px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-300">
                   {prompt.teamOrTopic}
                 </span>
               </div>
 
-              <h3 className="text-base text-neutral-100">
+              <h3 className="text-base text-neutral-100 font-light">
                 {prompt.title}
               </h3>
 
-              <p className="text-xs text-neutral-300 leading-relaxed">
+              <p className="text-xs text-neutral-300 leading-relaxed font-light">
                 {prompt.eventDescription}
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-3">
+            <div className="flex items-center justify-between pt-2">
               <div className="flex flex-col">
-                <span className="text-xs text-neutral-400">
-                  Suggested Boost
+                <span className="text-2xs text-neutral-400">
+                  Suggested Voluntary Boost
                 </span>
-                <span className="text-lg text-neutral-100">
-                  ${prompt.suggestedAmount}
+                <span className="text-base text-neutral-100 font-medium">
+                  {formatAmount(prompt.suggestedAmount, prompt.currency)}
                 </span>
               </div>
 
               {prompt.completed ? (
-                <span className="text-xs text-neutral-400">
-                  Contributed to Goal
-                </span>
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+                  <CheckmarkCircle01Icon size={16} />
+                  <span>Accepted</span>
+                </div>
               ) : (
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => handleTrigger(prompt.id)}
                 >
-                  Save ${prompt.suggestedAmount}
+                  Deposit Now
                 </Button>
               )}
             </div>

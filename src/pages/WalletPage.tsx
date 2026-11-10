@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { formatNimiqAddress, nimToUsd } from '../services/nimiqService';
+import { formatNimiqAddress, nimToUsdt, formatAmount } from '../services/nimiqService';
 import {
   Wallet01Icon,
   Coins01Icon,
@@ -23,7 +23,7 @@ export const WalletPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const usdValue = nimToUsd(wallet.balanceNim);
+  const nimValueInUsdt = nimToUsdt(wallet.balanceNim);
 
   return (
     <motion.div
@@ -33,12 +33,12 @@ export const WalletPage: React.FC = () => {
       className="flex flex-col gap-8 sm:gap-10"
     >
       <div className="flex flex-col gap-2.5">
-        <h1 className="text-2xl text-neutral-100">
+        <h1 className="text-2xl text-neutral-100 font-light">
           Nimiq Settlement Wallet
         </h1>
-        <p className="text-sm text-neutral-300 max-w-3xl leading-relaxed">
-          Nimiq powers the settlement infrastructure under the hood. All savings deposits and emergency
-          withdrawals settle directly through low latency proof of stake transactions with sponsored gas fees.
+        <p className="text-sm text-neutral-300 max-w-3xl leading-relaxed font-light">
+          Nimiq powers the micro settlement infrastructure under the hood. All savings deposits and emergency
+          withdrawals in native NIM and stable USDT settle directly through low latency proof of stake transactions with sponsored gas fees.
         </p>
       </div>
 
@@ -47,45 +47,45 @@ export const WalletPage: React.FC = () => {
         <Card className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-300">
-              Settlement Balance
+              Native NIM Holdings
             </span>
-            <Wallet01Icon size={16} className="text-neutral-300" />
+            <Coins01Icon size={16} className="text-amber-400" />
           </div>
-          <div className="text-2xl sm:text-3xl text-neutral-100">
+          <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
             {wallet.balanceNim.toLocaleString()} NIM
           </div>
           <span className="text-xs text-neutral-400">
-            Equivalent to Approximately ${usdValue.toLocaleString()} USD
+            Equivalent to Approximately ${nimValueInUsdt.toLocaleString()} USDT
           </span>
         </Card>
 
         <Card className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-300">
-              Emergency Passes
+              Stable USDT Reserves
+            </span>
+            <Wallet01Icon size={16} className="text-emerald-400" />
+          </div>
+          <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
+            ${wallet.balanceUsdt.toLocaleString()} USDT
+          </div>
+          <span className="text-xs text-neutral-400">
+            Dollar Pegged Stable Settlement Balance
+          </span>
+        </Card>
+
+        <Card className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-neutral-300">
+              Emergency Passes and Gas
             </span>
             <Coins01Icon size={16} className="text-neutral-300" />
           </div>
-          <div className="text-2xl sm:text-3xl text-neutral-100">
+          <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
             {wallet.freeEmergencyWithdrawalsRemaining} Free Passes
           </div>
           <span className="text-xs text-neutral-400">
-            Zero Fees Applied for Immediate Life Emergencies
-          </span>
-        </Card>
-
-        <Card className="flex flex-col gap-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-300">
-              Gasless Transactions
-            </span>
-            <Coins01Icon size={16} className="text-neutral-300" />
-          </div>
-          <div className="text-2xl sm:text-3xl text-neutral-100">
-            {wallet.sponsoredTxCount} Settled
-          </div>
-          <span className="text-xs text-neutral-400">
-            Transaction Fees Covered by Application Relayer
+            {wallet.sponsoredTxCount} Sponsored Transactions Settled with Zero Gas
           </span>
         </Card>
       </section>
@@ -128,10 +128,10 @@ export const WalletPage: React.FC = () => {
 
       {/* Non punitive withdrawal terms */}
       <div className="bg-neutral-900 p-6 sm:p-8 rounded-2xl flex flex-col gap-3 sm:gap-4">
-        <h3 className="text-base text-neutral-100">
+        <h3 className="text-base text-neutral-100 font-medium">
           Transparent Emergency Access Policy
         </h3>
-        <p className="text-xs text-neutral-300 leading-relaxed">
+        <p className="text-xs text-neutral-300 leading-relaxed font-light">
           Unlike traditional lock up products that impose punitive charges when users need their own money,
           Nimisave provides transparent emergency rules. Every user receives free emergency withdrawals. If additional
           early access is required beyond the free allowance, fees are strictly capped at fifteen dollars rather than
@@ -141,7 +141,7 @@ export const WalletPage: React.FC = () => {
 
       {/* Full on chain audit log */}
       <section className="flex flex-col gap-5 sm:gap-6">
-        <h3 className="text-lg text-neutral-100">
+        <h3 className="text-lg text-neutral-100 font-light">
           Complete Settlement Records
         </h3>
 
@@ -160,7 +160,7 @@ export const WalletPage: React.FC = () => {
                     <TxIcon size={16} />
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-neutral-100 text-sm">{tx.goalTitle}</span>
+                    <span className="text-neutral-100 text-sm font-light">{tx.goalTitle}</span>
                     <span className="text-neutral-400 capitalize">{tx.note || tx.type}</span>
                     <span className="text-neutral-500 text-2xs break-all max-w-[200px] sm:max-w-md truncate">
                       hash {tx.txHash}
@@ -170,12 +170,12 @@ export const WalletPage: React.FC = () => {
 
                 <div className="flex items-center justify-between sm:flex-col sm:items-end gap-1 pt-1 sm:pt-0">
                   <span className="text-neutral-100 text-sm font-medium">
-                    ${tx.amount} {isWithdrawal ? 'out' : 'in'}
+                    {formatAmount(tx.amount, tx.currency)} {isWithdrawal ? 'out' : 'in'}
                   </span>
                   <div className="flex items-center gap-2 sm:gap-1 text-neutral-400">
                     <span>{tx.date}</span>
                     <span className="hidden sm:inline">·</span>
-                    <span>Fee {tx.fee === 0 ? '0.00 (Sponsored)' : `$${tx.fee}`}</span>
+                    <span>Fee {tx.fee === 0 ? 'Zero (Sponsored)' : formatAmount(tx.fee, tx.currency)}</span>
                   </div>
                 </div>
               </div>

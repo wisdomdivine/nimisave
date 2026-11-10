@@ -3,6 +3,8 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { HouseModel } from './HouseModel';
 import { CarModel } from './CarModel';
+import { PlaneModel } from './PlaneModel';
+import { VaultModel } from './VaultModel';
 import { GoalCategory } from '../../types';
 
 interface GoalCanvasProps {
@@ -11,6 +13,20 @@ interface GoalCanvasProps {
 }
 
 export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) => {
+  const renderModel = () => {
+    switch (category) {
+      case 'car':
+        return <CarModel progress={progress} />;
+      case 'trip':
+        return <PlaneModel progress={progress} />;
+      case 'emergency':
+        return <VaultModel progress={progress} />;
+      case 'house':
+      default:
+        return <HouseModel progress={progress} />;
+    }
+  };
+
   return (
     <div className="w-full h-80 sm:h-96 bg-neutral-925 relative overflow-hidden rounded-2xl flex items-center justify-center">
       <Canvas
@@ -22,11 +38,7 @@ export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) =>
         <directionalLight position={[-6, 4, -4]} intensity={0.5} />
 
         <Suspense fallback={null}>
-          {category === 'car' ? (
-            <CarModel progress={progress} />
-          ) : (
-            <HouseModel progress={progress} />
-          )}
+          {renderModel()}
         </Suspense>
 
         <OrbitControls

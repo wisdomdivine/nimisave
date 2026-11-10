@@ -1,6 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { SavingsGoal, GoalMilestone, Transaction, HobbyPrompt, WalletInfo } from '../types';
-import { simulateNimiqSettlement, calculateWithdrawalDetails } from '../services/nimiqService';
+import {
+  SavingsGoal,
+  GoalMilestone,
+  Transaction,
+  HobbyPrompt,
+  WalletInfo,
+  Currency,
+  GoalType,
+  HobbyCategory,
+} from '../types';
+import {
+  simulateNimiqSettlement,
+  calculateWithdrawalDetails,
+  usdtToNim,
+  nimToUsdt,
+} from '../services/nimiqService';
 
 interface SavingsContextType {
   goals: SavingsGoal[];
@@ -9,8 +23,11 @@ interface SavingsContextType {
   transactions: Transaction[];
   prompts: HobbyPrompt[];
   wallet: WalletInfo;
-  deposit: (goalId: string, amount: number, note?: string) => Promise<boolean>;
-  withdraw: (goalId: string, amount: number, isEmergency: boolean, note?: string) => Promise<boolean>;
+  selectedHobby: HobbyCategory;
+  selectedTopic: string;
+  setHobbyPreference: (hobby: HobbyCategory, topic: string) => void;
+  deposit: (goalId: string, amount: number, currency?: Currency, note?: string) => Promise<boolean>;
+  withdraw: (goalId: string, amount: number, currency: Currency, isEmergency: boolean, note?: string) => Promise<boolean>;
   acceptPrompt: (promptId: string, goalId: string) => Promise<boolean>;
   dismissPrompt: (promptId: string) => void;
   addGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'milestones'>) => void;
@@ -25,9 +42,10 @@ const defaultGoals: SavingsGoal[] = [
     id: 'goal_house',
     title: 'Modern Dream House',
     category: 'house',
+    goalType: 'target',
     targetAmount: 25000,
     currentAmount: 14500,
-    currency: 'USD',
+    currency: 'USDT',
     deadlineMonths: 24,
     createdAt: '2026 01 15',
     milestones: [
@@ -35,38 +53,58 @@ const defaultGoals: SavingsGoal[] = [
       { id: 'm2', name: 'Framing Pillars', description: 'Wood beams and core columns', thresholdPercent: 40 },
       { id: 'm3', name: 'Enclosed Walls', description: 'Outer walls and entrance', thresholdPercent: 60 },
       { id: 'm4', name: 'Pitched Roof', description: 'Roof structure and chimney', thresholdPercent: 80 },
-      { id: 'm5', name: 'Glass and Garden', description: 'Glazing, porch and trees', thresholdPercent: 100 },
+      { id: 'm5', name: 'Glass and Garden', description: 'Glazing porch and landscaping', thresholdPercent: 100 },
     ],
   },
   {
     id: 'goal_car',
     title: 'Electric Performance Car',
     category: 'car',
+    goalType: 'target',
     targetAmount: 18000,
     currentAmount: 7200,
-    currency: 'USD',
+    currency: 'USDT',
     deadlineMonths: 18,
     createdAt: '2026 03 01',
     milestones: [
-      { id: 'c1', name: 'Chassis Frame', description: 'Wheel base and structural floor', thresholdPercent: 25 },
-      { id: 'c2', name: 'Powertrain', description: 'Battery block and cockpit seating', thresholdPercent: 50 },
-      { id: 'c3', name: 'Body Panels', description: 'Exterior aerodynamic shell', thresholdPercent: 75 },
-      { id: 'c4', name: 'Wheels and Trim', description: 'Alloy wheels and headlights', thresholdPercent: 100 },
+      { id: 'c1', name: 'Chassis Platform', description: 'Underbody floor and battery pack', thresholdPercent: 25 },
+      { id: 'c2', name: 'Sport Cockpit', description: 'Dual racing seats and dash display', thresholdPercent: 50 },
+      { id: 'c3', name: 'Aerodynamic Shell', description: 'Metallic bodywork and rear spoiler', thresholdPercent: 75 },
+      { id: 'c4', name: 'Wheels and LED Lights', description: 'Alloy wheels and full lighting array', thresholdPercent: 100 },
+    ],
+  },
+  {
+    id: 'goal_trip',
+    title: 'Tokyo and Kyoto Journey',
+    category: 'trip',
+    goalType: 'target',
+    targetAmount: 4500,
+    currentAmount: 2925,
+    currency: 'USDT',
+    deadlineMonths: 10,
+    createdAt: '2026 04 12',
+    milestones: [
+      { id: 't1', name: 'Roundtrip Flights', description: 'Long haul flight tickets reserved', thresholdPercent: 25 },
+      { id: 't2', name: 'Ryokan Stays', description: 'Traditional accommodations booked', thresholdPercent: 50 },
+      { id: 't3', name: 'High Speed Shinkansen', description: 'Rail passes and city transits ready', thresholdPercent: 75 },
+      { id: 't4', name: 'Culinary and Excursions', description: 'Full cultural travel itinerary covered', thresholdPercent: 100 },
     ],
   },
   {
     id: 'goal_emergency',
-    title: 'Peace of Mind Stash',
+    title: 'Perpetual Reserve Vault',
     category: 'emergency',
-    targetAmount: 5000,
-    currentAmount: 3500,
-    currency: 'USD',
-    deadlineMonths: 6,
+    goalType: 'open_vault',
+    targetAmount: 1000000,
+    currentAmount: 742850,
+    currency: 'NIM',
+    deadlineMonths: 36,
     createdAt: '2026 02 10',
     milestones: [
-      { id: 'e1', name: 'One Month Buffer', description: 'Immediate essentials covered', thresholdPercent: 33 },
-      { id: 'e2', name: 'Two Month Safety', description: 'Full rent and living covered', thresholdPercent: 66 },
-      { id: 'e3', name: 'Full Stash Goal', description: 'Complete financial safety reserve', thresholdPercent: 100 },
+      { id: 'v1', name: 'Reinforced Outer Casing', description: 'Heavy vault structural enclosure', thresholdPercent: 25 },
+      { id: 'v2', name: 'Steel Door and Dial', description: 'Rotary dial and bolt locking system', thresholdPercent: 50 },
+      { id: 'v3', name: 'Internal Gold Stacks', description: 'Physical gold bullion and reserve tokens', thresholdPercent: 75 },
+      { id: 'v4', name: 'Open Treasure Chest', description: 'Compounding perpetual safety cushion', thresholdPercent: 100 },
     ],
   },
 ];
@@ -76,8 +114,9 @@ const defaultPrompts: HobbyPrompt[] = [
     id: 'p1',
     title: 'Weekend Football Win',
     hobbyCategory: 'football',
-    eventDescription: 'Your favorite team secured three points in the weekend league. Voluntary victory savings boost.',
+    eventDescription: 'Your chosen club secured three points in the weekend league. Voluntary victory savings boost.',
     suggestedAmount: 20,
+    currency: 'USDT',
     teamOrTopic: 'Arsenal',
     completed: false,
   },
@@ -85,8 +124,9 @@ const defaultPrompts: HobbyPrompt[] = [
     id: 'p2',
     title: 'Basketball Game Night',
     hobbyCategory: 'basketball',
-    eventDescription: 'Golden State reached over 110 points tonight. Put aside a small boost toward your goal.',
+    eventDescription: 'Your team reached over 110 points tonight. Put aside a small boost toward your goal.',
     suggestedAmount: 15,
+    currency: 'USDT',
     teamOrTopic: 'Golden State',
     completed: false,
   },
@@ -96,6 +136,7 @@ const defaultPrompts: HobbyPrompt[] = [
     hobbyCategory: 'gaming',
     eventDescription: 'Weekly gaming raid finished with your squad. Celebrate discipline by adding to your dream.',
     suggestedAmount: 10,
+    currency: 'USDT',
     teamOrTopic: 'Squad Raid',
     completed: false,
   },
@@ -104,7 +145,8 @@ const defaultPrompts: HobbyPrompt[] = [
     title: 'Nimiq Network Milestone',
     hobbyCategory: 'crypto',
     eventDescription: 'Proof of Stake validators reached milestone block. Voluntary habit deposit with zero gas.',
-    suggestedAmount: 25,
+    suggestedAmount: 5000,
+    currency: 'NIM',
     teamOrTopic: 'Nimiq PoS',
     completed: false,
   },
@@ -113,21 +155,42 @@ const defaultPrompts: HobbyPrompt[] = [
 const defaultTransactions: Transaction[] = [
   {
     id: 'tx_01',
-    goalId: 'goal_house',
-    goalTitle: 'Modern Dream House',
-    amount: 500,
+    goalId: 'goal_trip',
+    goalTitle: 'Tokyo and Kyoto Journey',
+    amount: 150,
+    currency: 'USDT',
+    equivalentAmount: 42857,
+    equivalentCurrency: 'NIM',
+    type: 'deposit',
+    date: '2026 11 09',
+    txHash: 'a71b2d493a04cf91b29a8f2761038b556942ce2139487920ab3e8f192bce9100',
+    fee: 0,
+    status: 'confirmed',
+    note: 'Weekly trip flight savings deposit',
+  },
+  {
+    id: 'tx_02',
+    goalId: 'goal_emergency',
+    goalTitle: 'Perpetual Reserve Vault',
+    amount: 50000,
+    currency: 'NIM',
+    equivalentAmount: 175,
+    equivalentCurrency: 'USDT',
     type: 'deposit',
     date: '2026 11 08',
     txHash: 'e71b2d493a04cf91b29a8f2761038b556942ce2139487920ab3e8f192bce9100',
     fee: 0,
     status: 'confirmed',
-    note: 'Weekly savings deposit',
+    note: 'Native NIM staking reward rollover',
   },
   {
-    id: 'tx_02',
+    id: 'tx_03',
     goalId: 'goal_car',
     goalTitle: 'Electric Performance Car',
     amount: 150,
+    currency: 'USDT',
+    equivalentAmount: 42857,
+    equivalentCurrency: 'NIM',
     type: 'deposit',
     date: '2026 11 05',
     txHash: '8b3c990234a419df0123567889bcde44512903847291aebcd398402910293847',
@@ -136,50 +199,90 @@ const defaultTransactions: Transaction[] = [
     note: 'Biweekly car fund contribution',
   },
   {
-    id: 'tx_03',
+    id: 'tx_04',
     goalId: 'goal_house',
     goalTitle: 'Modern Dream House',
     amount: 20,
+    currency: 'USDT',
+    equivalentAmount: 5714,
+    equivalentCurrency: 'NIM',
     type: 'prompt_deposit',
     date: '2026 11 02',
     txHash: '990234123567889bcde44512903847291aebcd3984029102938478b3c88123490',
     fee: 0,
     status: 'confirmed',
-    note: 'Football victory voluntary boost',
+    note: 'Arsenal weekend victory voluntary boost',
   },
 ];
 
 const defaultWallet: WalletInfo = {
   nimiqAddress: 'NQ42 8X7K M9V1 B2L8 QP03 7N92 Y44D 10KL',
-  balanceNim: 742857.14,
+  balanceNim: 742857,
+  balanceUsdt: 2500,
   nimPriceUsd: 0.0035,
   freeEmergencyWithdrawalsRemaining: 2,
-  sponsoredTxCount: 28,
+  sponsoredTxCount: 32,
 };
 
 const SavingsContext = createContext<SavingsContextType | undefined>(undefined);
 
 export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [goals, setGoals] = useState<SavingsGoal[]>(() => {
-    const saved = localStorage.getItem('nimisave_goals') || localStorage.getItem('gammy_goals');
-    return saved ? JSON.parse(saved) : defaultGoals;
+    const saved = localStorage.getItem('nimisave_goals');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return defaultGoals;
+      }
+    }
+    return defaultGoals;
   });
 
   const [activeGoalId, setActiveGoalId] = useState<string>('goal_house');
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('nimisave_transactions') || localStorage.getItem('gammy_transactions');
-    return saved ? JSON.parse(saved) : defaultTransactions;
+    const saved = localStorage.getItem('nimisave_transactions');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return defaultTransactions;
+      }
+    }
+    return defaultTransactions;
   });
 
   const [prompts, setPrompts] = useState<HobbyPrompt[]>(() => {
-    const saved = localStorage.getItem('nimisave_prompts') || localStorage.getItem('gammy_prompts');
-    return saved ? JSON.parse(saved) : defaultPrompts;
+    const saved = localStorage.getItem('nimisave_prompts');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return defaultPrompts;
+      }
+    }
+    return defaultPrompts;
   });
 
   const [wallet, setWallet] = useState<WalletInfo>(() => {
-    const saved = localStorage.getItem('nimisave_wallet') || localStorage.getItem('gammy_wallet');
-    return saved ? JSON.parse(saved) : defaultWallet;
+    const saved = localStorage.getItem('nimisave_wallet');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return defaultWallet;
+      }
+    }
+    return defaultWallet;
+  });
+
+  const [selectedHobby, setSelectedHobby] = useState<HobbyCategory>(() => {
+    return (localStorage.getItem('nimisave_hobby') as HobbyCategory) || 'football';
+  });
+
+  const [selectedTopic, setSelectedTopic] = useState<string>(() => {
+    return localStorage.getItem('nimisave_topic') || 'Arsenal';
   });
 
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState<boolean>(false);
@@ -202,13 +305,58 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('nimisave_wallet', JSON.stringify(wallet));
   }, [wallet]);
 
+  const setHobbyPreference = (hobby: HobbyCategory, topic: string) => {
+    setSelectedHobby(hobby);
+    setSelectedTopic(topic);
+    localStorage.setItem('nimisave_hobby', hobby);
+    localStorage.setItem('nimisave_topic', topic);
+
+    // Update active prompts to reflect this topic
+    setPrompts((prev) =>
+      prev.map((p) => {
+        if (p.hobbyCategory === hobby) {
+          return {
+            ...p,
+            teamOrTopic: topic,
+            completed: false,
+            eventDescription:
+              hobby === 'football'
+                ? `${topic} secured three points in the weekend league. Voluntary victory savings boost.`
+                : hobby === 'basketball'
+                ? `${topic} scored high in the conference tonight. Voluntary victory savings boost.`
+                : hobby === 'gaming'
+                ? `${topic} completed raid objectives. Voluntary victory savings boost.`
+                : `${topic} achieved network milestone. Voluntary voluntary savings boost.`,
+          };
+        }
+        return p;
+      })
+    );
+  };
+
   const activeGoal = goals.find((g) => g.id === activeGoalId) || goals[0] || null;
 
-  const deposit = async (goalId: string, amount: number, note?: string): Promise<boolean> => {
+  const deposit = async (
+    goalId: string,
+    amount: number,
+    depositCurrency?: Currency,
+    note?: string
+  ): Promise<boolean> => {
     const targetGoal = goals.find((g) => g.id === goalId);
     if (!targetGoal) return false;
 
-    const settlement = await simulateNimiqSettlement(wallet.nimiqAddress, amount);
+    const usedCurrency: Currency = depositCurrency || targetGoal.currency;
+    const settlement = await simulateNimiqSettlement(wallet.nimiqAddress, amount, usedCurrency);
+
+    // Calculate effective added amount in the goal's native currency
+    let addedAmount = amount;
+    if (usedCurrency !== targetGoal.currency) {
+      if (usedCurrency === 'NIM' && targetGoal.currency === 'USDT') {
+        addedAmount = nimToUsdt(amount);
+      } else if (usedCurrency === 'USDT' && targetGoal.currency === 'NIM') {
+        addedAmount = usdtToNim(amount);
+      }
+    }
 
     const now = new Date();
     const dateStr = `${now.getFullYear()} ${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}`;
@@ -218,16 +366,21 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       goalId,
       goalTitle: targetGoal.title,
       amount,
+      currency: usedCurrency,
+      equivalentAmount: usedCurrency === 'NIM' ? settlement.usdtEquivalent : settlement.nimEquivalent,
+      equivalentCurrency: usedCurrency === 'NIM' ? 'USDT' : 'NIM',
       type: 'deposit',
       date: dateStr,
       txHash: settlement.txHash,
       fee: 0,
       status: 'confirmed',
-      note: note || 'Direct voluntary deposit',
+      note: note || 'Voluntary deposit',
     };
 
     setGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g))
+      prev.map((g) =>
+        g.id === goalId ? { ...g, currentAmount: g.currentAmount + addedAmount } : g
+      )
     );
 
     setTransactions((prev) => [newTx, ...prev]);
@@ -243,19 +396,32 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const withdraw = async (
     goalId: string,
     amount: number,
+    withdrawCurrency: Currency,
     isEmergency: boolean,
     note?: string
   ): Promise<boolean> => {
     const targetGoal = goals.find((g) => g.id === goalId);
-    if (!targetGoal || targetGoal.currentAmount < amount) return false;
+    if (!targetGoal) return false;
+
+    let deductionFromGoal = amount;
+    if (withdrawCurrency !== targetGoal.currency) {
+      if (withdrawCurrency === 'NIM' && targetGoal.currency === 'USDT') {
+        deductionFromGoal = nimToUsdt(amount);
+      } else if (withdrawCurrency === 'USDT' && targetGoal.currency === 'NIM') {
+        deductionFromGoal = usdtToNim(amount);
+      }
+    }
+
+    if (targetGoal.currentAmount < deductionFromGoal) return false;
 
     const details = calculateWithdrawalDetails(
       amount,
+      withdrawCurrency,
       isEmergency,
       wallet.freeEmergencyWithdrawalsRemaining
     );
 
-    const settlement = await simulateNimiqSettlement(wallet.nimiqAddress, amount);
+    const settlement = await simulateNimiqSettlement(wallet.nimiqAddress, amount, withdrawCurrency);
 
     const now = new Date();
     const dateStr = `${now.getFullYear()} ${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}`;
@@ -265,6 +431,10 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       goalId,
       goalTitle: targetGoal.title,
       amount: details.netAmount,
+      currency: withdrawCurrency,
+      equivalentAmount:
+        withdrawCurrency === 'NIM' ? settlement.usdtEquivalent : settlement.nimEquivalent,
+      equivalentCurrency: withdrawCurrency === 'NIM' ? 'USDT' : 'NIM',
       type: 'withdrawal',
       date: dateStr,
       txHash: settlement.txHash,
@@ -274,7 +444,9 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, currentAmount: g.currentAmount - amount } : g))
+      prev.map((g) =>
+        g.id === goalId ? { ...g, currentAmount: g.currentAmount - deductionFromGoal } : g
+      )
     );
 
     setTransactions((prev) => [newTx, ...prev]);
@@ -296,6 +468,7 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const success = await deposit(
       goalId,
       prompt.suggestedAmount,
+      prompt.currency,
       `${prompt.title} voluntary prompt`
     );
 
@@ -324,21 +497,28 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         { id: 'm2', name: 'Framing Pillars', description: 'Wood beams and core columns', thresholdPercent: 40 },
         { id: 'm3', name: 'Enclosed Walls', description: 'Outer walls and entrance', thresholdPercent: 60 },
         { id: 'm4', name: 'Pitched Roof', description: 'Roof structure and chimney', thresholdPercent: 80 },
-        { id: 'm5', name: 'Glass and Garden', description: 'Glazing, porch and trees', thresholdPercent: 100 },
+        { id: 'm5', name: 'Glass and Garden', description: 'Glazing porch and landscaping', thresholdPercent: 100 },
       ];
     } else if (goalData.category === 'car') {
       milestones = [
-        { id: 'c1', name: 'Chassis Frame', description: 'Wheel base and structural floor', thresholdPercent: 25 },
-        { id: 'c2', name: 'Powertrain', description: 'Battery block and cockpit seating', thresholdPercent: 50 },
-        { id: 'c3', name: 'Body Panels', description: 'Exterior aerodynamic shell', thresholdPercent: 75 },
-        { id: 'c4', name: 'Wheels and Trim', description: 'Alloy wheels and headlights', thresholdPercent: 100 },
+        { id: 'c1', name: 'Chassis Platform', description: 'Underbody floor and battery pack', thresholdPercent: 25 },
+        { id: 'c2', name: 'Sport Cockpit', description: 'Dual racing seats and dash display', thresholdPercent: 50 },
+        { id: 'c3', name: 'Aerodynamic Shell', description: 'Metallic bodywork and rear spoiler', thresholdPercent: 75 },
+        { id: 'c4', name: 'Wheels and LED Lights', description: 'Alloy wheels and full lighting array', thresholdPercent: 100 },
+      ];
+    } else if (goalData.category === 'trip') {
+      milestones = [
+        { id: 't1', name: 'Roundtrip Flights', description: 'Long haul flight tickets reserved', thresholdPercent: 25 },
+        { id: 't2', name: 'Lodging Stays', description: 'Scenic accommodations booked', thresholdPercent: 50 },
+        { id: 't3', name: 'Transit Passes', description: 'High speed transfers and travel passes', thresholdPercent: 75 },
+        { id: 't4', name: 'Excursions and Dining', description: 'Full cultural travel itinerary covered', thresholdPercent: 100 },
       ];
     } else {
       milestones = [
-        { id: 's1', name: 'First Quarter Milestone', description: 'Early momentum achieved', thresholdPercent: 25 },
-        { id: 's2', name: 'Halfway Mark', description: 'Halfway to target reach', thresholdPercent: 50 },
-        { id: 's3', name: 'Three Quarter Sprint', description: 'Final stretch in sight', thresholdPercent: 75 },
-        { id: 's4', name: 'Goal Completed', description: 'Full target unlocked', thresholdPercent: 100 },
+        { id: 'v1', name: 'Reinforced Outer Casing', description: 'Heavy vault structural enclosure', thresholdPercent: 25 },
+        { id: 'v2', name: 'Steel Door and Dial', description: 'Rotary dial and bolt locking system', thresholdPercent: 50 },
+        { id: 'v3', name: 'Internal Gold Stacks', description: 'Physical gold bullion and reserve tokens', thresholdPercent: 75 },
+        { id: 'v4', name: 'Open Treasure Chest', description: 'Compounding perpetual safety cushion', thresholdPercent: 100 },
       ];
     }
 
@@ -363,6 +543,9 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         transactions,
         prompts,
         wallet,
+        selectedHobby,
+        selectedTopic,
+        setHobbyPreference,
         deposit,
         withdraw,
         acceptPrompt,

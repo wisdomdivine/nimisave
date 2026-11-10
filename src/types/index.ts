@@ -1,5 +1,9 @@
 export type GoalCategory = 'house' | 'car' | 'trip' | 'emergency';
 
+export type GoalType = 'target' | 'open_vault';
+
+export type Currency = 'USDT' | 'NIM' | 'USD';
+
 export interface GoalMilestone {
   id: string;
   name: string;
@@ -11,10 +15,11 @@ export interface SavingsGoal {
   id: string;
   title: string;
   category: GoalCategory;
+  goalType?: GoalType;
   targetAmount: number;
   currentAmount: number;
-  currency: string;
-  deadlineMonths: number;
+  currency: Currency;
+  deadlineMonths?: number;
   createdAt: string;
   milestones: GoalMilestone[];
 }
@@ -26,6 +31,9 @@ export interface Transaction {
   goalId: string;
   goalTitle: string;
   amount: number;
+  currency: Currency;
+  equivalentAmount?: number;
+  equivalentCurrency?: Currency;
   type: TransactionType;
   date: string;
   txHash: string;
@@ -42,6 +50,7 @@ export interface HobbyPrompt {
   hobbyCategory: HobbyCategory;
   eventDescription: string;
   suggestedAmount: number;
+  currency: Currency;
   teamOrTopic: string;
   completed: boolean;
 }
@@ -49,8 +58,8 @@ export interface HobbyPrompt {
 export interface WalletInfo {
   nimiqAddress: string;
   balanceNim: number;
+  balanceUsdt: number;
   nimPriceUsd: number;
   freeEmergencyWithdrawalsRemaining: number;
   sponsoredTxCount: number;
 }
-
