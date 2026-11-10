@@ -88,7 +88,7 @@ export const WalletPage: React.FC = () => {
           </span>
         </div>
 
-        <div className="bg-neutral-950 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="font-mono text-xs text-neutral-200 tracking-widest break-all">
             {formatNimiqAddress(wallet.nimiqAddress)}
           </span>
@@ -99,7 +99,7 @@ export const WalletPage: React.FC = () => {
       </Card>
 
       {/* Non punitive withdrawal terms */}
-      <div className="bg-neutral-900 p-8 flex flex-col gap-4">
+      <div className="bg-neutral-900 p-8 rounded-2xl flex flex-col gap-4">
         <h3 className="text-base font-light text-neutral-100">
           Transparent emergency access policy
         </h3>
@@ -117,11 +117,11 @@ export const WalletPage: React.FC = () => {
           Complete settlement records
         </h3>
 
-        <div className="bg-neutral-900 p-6 flex flex-col gap-4">
+        <div className="bg-neutral-900 p-6 rounded-3xl flex flex-col gap-3">
           {transactions.map((tx) => (
             <div
               key={tx.id}
-              className="flex flex-col md:flex-row md:items-center justify-between py-3 gap-3 text-xs font-light text-neutral-300"
+              className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-3 text-xs font-light text-neutral-300"
             >
               <div className="flex flex-col gap-1">
                 <span className="text-neutral-100 text-sm">{tx.goalTitle}</span>

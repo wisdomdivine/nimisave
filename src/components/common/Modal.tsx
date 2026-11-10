@@ -27,7 +27,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-none">
-      <div className="w-full max-w-lg bg-neutral-900 p-8 flex flex-col gap-6">
+      <div className="w-full max-w-lg bg-neutral-900 p-8 rounded-3xl flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-light tracking-wide text-neutral-100">
             {title}
@@ -35,7 +35,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
           <button
             type="button"
             onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-100 p-2 cursor-pointer transition-colors"
+            className="text-neutral-400 hover:text-neutral-100 p-2 rounded-xl cursor-pointer transition-colors"
           >
             <Cancel01Icon size={18} />
           </button>
@@ -47,4 +47,3 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
     </div>
   );
 };
-

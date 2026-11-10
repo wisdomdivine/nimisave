@@ -76,7 +76,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
             <button
               type="button"
               onClick={() => setIsEmergency(true)}
-              className={`p-4 text-left transition-colors cursor-pointer ${
+              className={`p-4 text-left transition-colors rounded-2xl cursor-pointer ${
                 isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -89,7 +89,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
             <button
               type="button"
               onClick={() => setIsEmergency(false)}
-              className={`p-4 text-left transition-colors cursor-pointer ${
+              className={`p-4 text-left transition-colors rounded-2xl cursor-pointer ${
                 !isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -101,7 +101,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           </div>
         </div>
 
-        <div className="bg-neutral-950 p-4 flex flex-col gap-2">
+        <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col gap-2">
           <div className="flex justify-between text-xs font-light text-neutral-400">
             <span>Requested amount</span>
             <span className="text-neutral-200">{details.grossAmount} dollars</span>
@@ -124,7 +124,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
         </div>
 
         {message && (
-          <div className="p-3 bg-neutral-800 text-xs font-light text-neutral-200 text-center">
+          <div className="p-4 bg-neutral-800 rounded-xl text-xs font-light text-neutral-200 text-center">
             {message}
           </div>
         )}
@@ -145,4 +145,3 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
     </Modal>
   );
 };
-

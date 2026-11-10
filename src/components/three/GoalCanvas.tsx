@@ -12,7 +12,7 @@ interface GoalCanvasProps {
 
 export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) => {
   return (
-    <div className="w-full h-80 sm:h-96 bg-neutral-925 relative overflow-hidden flex items-center justify-center">
+    <div className="w-full h-80 sm:h-96 bg-neutral-925 relative overflow-hidden rounded-2xl flex items-center justify-center">
       <Canvas
         camera={{ position: [4.5, 3.2, 4.5], fov: 42 }}
         className="cursor-grab active:cursor-grabbing w-full h-full"
@@ -47,4 +47,3 @@ export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) =>
     </div>
   );
 };
-

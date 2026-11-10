@@ -52,7 +52,7 @@ export const HobbyPromptsPage: React.FC = () => {
       </div>
 
       {/* Strict boundary notice */}
-      <div className="bg-neutral-900 p-6 flex flex-col gap-2">
+      <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col gap-2">
         <span className="text-xs font-light text-neutral-300 tracking-wider">
           Responsible financial design boundary
         </span>
@@ -64,7 +64,7 @@ export const HobbyPromptsPage: React.FC = () => {
       </div>
 
       {actionNotice && (
-        <div className="bg-neutral-800 p-4 text-xs font-light text-neutral-200 text-center">
+        <div className="bg-neutral-800 p-4 rounded-xl text-xs font-light text-neutral-200 text-center">
           {actionNotice}
         </div>
       )}
@@ -77,7 +77,7 @@ export const HobbyPromptsPage: React.FC = () => {
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 text-xs font-light tracking-wide transition-colors cursor-pointer ${
+              className={`px-4 py-2 text-xs font-light tracking-wide transition-colors rounded-xl cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-neutral-100 text-neutral-950'
                   : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
@@ -95,7 +95,7 @@ export const HobbyPromptsPage: React.FC = () => {
           <select
             value={targetGoalId}
             onChange={(e) => setTargetGoalId(e.target.value)}
-            className="bg-neutral-900 text-neutral-200 px-4 py-2 text-xs font-light outline-none cursor-pointer"
+            className="bg-neutral-900 text-neutral-200 px-4 py-2 text-xs font-light rounded-xl outline-none cursor-pointer"
           >
             {goals.map((g) => (
               <option key={g.id} value={g.id}>
@@ -162,4 +162,3 @@ export const HobbyPromptsPage: React.FC = () => {
     </div>
   );
 };
-

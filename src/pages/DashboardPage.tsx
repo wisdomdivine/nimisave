@@ -79,7 +79,7 @@ export const DashboardPage: React.FC = () => {
 
       {/* Hobby prompt voluntary notification if active */}
       {activePrompt && (
-        <div className="bg-neutral-900 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex flex-col gap-1 max-w-2xl">
             <span className="text-xs font-light text-neutral-400 tracking-wider">
               Voluntary hobby trigger ({activePrompt.teamOrTopic})
@@ -113,10 +113,12 @@ export const DashboardPage: React.FC = () => {
 
       {/* Featured 3D goal builder workspace */}
       {activeGoal && (
-        <section className="bg-neutral-900 flex flex-col lg:flex-row items-stretch">
+        <section className="bg-neutral-900 rounded-3xl overflow-hidden flex flex-col lg:flex-row items-stretch">
           {/* 3D Canvas visual stage view */}
           <div className="lg:w-7/12 relative flex flex-col">
-            <GoalCanvas category={activeGoal.category} progress={displayPercent} />
+            <div className="p-4 sm:p-6 pb-0">
+              <GoalCanvas category={activeGoal.category} progress={displayPercent} />
+            </div>
 
             <div className="p-6 bg-neutral-900 flex flex-col gap-3">
               <div className="flex items-center justify-between text-xs font-light text-neutral-400">
@@ -129,7 +131,7 @@ export const DashboardPage: React.FC = () => {
                 max="100"
                 value={displayPercent}
                 onChange={(e) => setPreviewPercent(Number(e.target.value))}
-                className="w-full accent-neutral-100 cursor-pointer bg-neutral-800 h-1"
+                className="w-full accent-neutral-100 cursor-pointer bg-neutral-800 h-1 rounded-full"
               />
               <div className="flex justify-between text-xs font-light text-neutral-400">
                 <span>Ground work</span>
@@ -181,7 +183,7 @@ export const DashboardPage: React.FC = () => {
                     return (
                       <div
                         key={m.id}
-                        className={`p-3 flex items-center justify-between text-xs font-light transition-colors ${
+                        className={`p-4 rounded-xl flex items-center justify-between text-xs font-light transition-colors ${
                           isUnlocked
                             ? 'bg-neutral-800 text-neutral-100'
                             : 'bg-neutral-950 text-neutral-400'
@@ -288,11 +290,11 @@ export const DashboardPage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="bg-neutral-900 p-6 flex flex-col gap-3">
+        <div className="bg-neutral-900 p-6 rounded-3xl flex flex-col gap-3">
           {transactions.slice(0, 4).map((tx) => (
             <div
               key={tx.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between py-3 gap-2 text-xs font-light text-neutral-300"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-2 text-xs font-light text-neutral-300"
             >
               <div className="flex items-center gap-4">
                 <Coins01Icon size={16} className="text-neutral-400" />

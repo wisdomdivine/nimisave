@@ -15,3 +15,4 @@ Gamified savings platform with interactive 3D goal stages and Nimiq settlement.
 Run npm install to install dependencies.
 Run npm run dev to launch the local Vite development server.
 Run npm run build to compile the production bundle.
+

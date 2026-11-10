@@ -19,7 +19,7 @@ export const Input: React.FC<InputProps> = ({
         </label>
       )}
       <input
-        className={`w-full bg-neutral-900 text-neutral-100 placeholder-neutral-600 px-4 py-3 font-light text-sm outline-none transition-colors focus:bg-neutral-850 ${className}`}
+        className={`w-full bg-neutral-900 text-neutral-100 placeholder-neutral-600 px-4 py-3 font-light text-sm outline-none transition-colors rounded-xl focus:bg-neutral-850 ${className}`}
         {...props}
       />
       {error && (
@@ -30,4 +30,3 @@ export const Input: React.FC<InputProps> = ({
     </div>
   );
 };
-

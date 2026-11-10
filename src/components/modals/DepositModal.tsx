@@ -71,7 +71,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
                 key={val}
                 type="button"
                 onClick={() => handleQuickSelect(val)}
-                className={`py-3 text-xs font-light transition-colors cursor-pointer ${
+                className={`py-3 text-xs font-light transition-colors rounded-xl cursor-pointer ${
                   amount === val && customAmount === ''
                     ? 'bg-neutral-100 text-neutral-950'
                     : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
@@ -93,7 +93,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
           placeholder="For example 75"
         />
 
-        <div className="bg-neutral-950 p-4 flex flex-col gap-2">
+        <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col gap-2">
           <div className="flex justify-between text-xs font-light text-neutral-400">
             <span>Settlement network</span>
             <span className="text-neutral-200">Nimiq PoS micro settlement</span>
@@ -111,7 +111,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
         </div>
 
         {successMessage && (
-          <div className="p-3 bg-neutral-800 text-xs font-light text-neutral-200 text-center">
+          <div className="p-4 bg-neutral-800 rounded-xl text-xs font-light text-neutral-200 text-center">
             {successMessage}
           </div>
         )}
@@ -128,4 +128,3 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
     </Modal>
   );
 };
-

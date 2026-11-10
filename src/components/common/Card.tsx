@@ -12,10 +12,9 @@ export const Card: React.FC<CardProps> = ({ children, className = '', onClick })
   return (
     <div
       onClick={onClick}
-      className={`bg-neutral-900 p-8 ${clickableStyle} ${className}`}
+      className={`bg-neutral-900 p-8 rounded-2xl ${clickableStyle} ${className}`}
     >
       {children}
     </div>
   );
 };
-
