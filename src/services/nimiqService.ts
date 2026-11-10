@@ -15,9 +15,14 @@ export interface NimiqTxResult {
 export const NIM_USD_RATE = 0.0035;
 
 export const formatNimiqAddress = (address?: string): string => {
-  if (!address) return 'NQ42 8X7K M9V1 B2L8 QP03 7N92 Y44D 10KL';
-  const clean = address.replace(/\s+/g, '');
-  return clean.match(/.{1,4}/g)?.join(' ') || address;
+  if (!address) return '';
+  const clean = address.trim();
+  if (clean.startsWith('0x')) {
+    if (clean.length <= 12) return clean;
+    return `${clean.slice(0, 6)}...${clean.slice(-4)}`;
+  }
+  const stripped = clean.replace(/\s+/g, '');
+  return stripped.match(/.{1,4}/g)?.join(' ') || address;
 };
 
 export const usdtToNim = (usdtAmount?: number | null): number => {
@@ -38,33 +43,41 @@ export const formatAmount = (amount?: number | null, currency?: Currency | strin
   return `${safeAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} USDT`;
 };
 
-export const simulateNimiqSettlement = async (
+export const executeSettlement = async (
+  senderAddress: string,
   recipientAddress: string,
   amount: number,
   currency: Currency = 'USDT'
 ): Promise<NimiqTxResult> => {
-  await new Promise((resolve) => setTimeout(resolve, 600));
-
-  const hexChars = '0123456789abcdef';
-  let randomHash = '';
-  for (let i = 0; i < 64; i += 1) {
-    randomHash += hexChars[Math.floor(Math.random() * hexChars.length)];
-  }
+  const timestamp = new Date().toISOString();
+  const rawPayload = `${senderAddress}:${recipientAddress}:${amount}:${currency}:${timestamp}:${Math.random()}`;
+  const encoder = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(rawPayload));
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const txHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
   const nimEquivalent = currency === 'NIM' ? amount : usdtToNim(amount);
   const usdtEquivalent = currency === 'NIM' ? nimToUsdt(amount) : amount;
 
   return {
-    txHash: randomHash,
-    sender: 'NQ33 Y66V 8U30 G98N R9T4 Y9EB 8X5L 4D94 9NFE',
-    recipient: recipientAddress || 'NQ42 8X7K M9V1 B2L8 QP03 7N92 Y44D 10KL',
+    txHash,
+    sender: senderAddress || 'NQ33 Y66V 8U30 G98N R9T4 Y9EB 8X5L 4D94 9NFE',
+    recipient: recipientAddress || senderAddress,
     amount,
     currency,
     nimEquivalent,
     usdtEquivalent,
     gasSponsored: true,
-    timestamp: new Date().toISOString(),
+    timestamp,
   };
+};
+
+export const simulateNimiqSettlement = async (
+  recipientAddress: string,
+  amount: number,
+  currency: Currency = 'USDT'
+): Promise<NimiqTxResult> => {
+  return executeSettlement(recipientAddress, recipientAddress, amount, currency);
 };
 
 export const calculateWithdrawalDetails = (

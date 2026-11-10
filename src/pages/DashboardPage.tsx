@@ -346,6 +346,25 @@ export const DashboardPage: React.FC = () => {
         </motion.div>
       )}
 
+      {/* Empty goals state if none exist yet */}
+      {!activeGoal && (
+        <section className="bg-neutral-900 rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-4">
+          <div className="p-4 bg-neutral-850 rounded-2xl text-neutral-400">
+            <SafeIcon size={32} />
+          </div>
+          <div className="flex flex-col gap-1 max-w-md">
+            <h2 className="text-lg text-neutral-100 font-light">No Active Goal Boxes</h2>
+            <p className="text-xs text-neutral-400 font-light leading-relaxed">
+              Create your first live goal box to begin watching your physical aspirations assemble in real time 3D.
+            </p>
+          </div>
+          <Button variant="primary" onClick={openCreateGoal}>
+            <PlusSignIcon size={16} className="mr-2" />
+            Create Your First Goal Box
+          </Button>
+        </section>
+      )}
+
       {/* Featured 3D goal builder workspace */}
       {activeGoal && (
         <section className="bg-neutral-900 rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col lg:flex-row items-stretch">
@@ -524,52 +543,58 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {goals.map((g) => {
-            const pct = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
-            const isSelected = activeGoal?.id === g.id;
+          {goals.length === 0 ? (
+            <div className="col-span-full bg-neutral-900 p-8 rounded-2xl text-center text-xs text-neutral-400 font-light">
+              No goal boxes created yet. Click New Box above to create one.
+            </div>
+          ) : (
+            goals.map((g) => {
+              const pct = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
+              const isSelected = activeGoal?.id === g.id;
 
-            return (
-              <motion.div
-                key={g.id}
-                whileHover={{ y: -3 }}
-                transition={{ duration: 0.15 }}
-              >
-                <Card
-                  onClick={() => {
-                    setActiveGoalId(g.id);
-                    setPreviewPercent(null);
-                  }}
-                  className={`flex flex-col justify-between gap-5 sm:gap-6 cursor-pointer transition-colors ${
-                    isSelected ? 'bg-neutral-850' : 'bg-neutral-900 hover:bg-neutral-850'
-                  }`}
+              return (
+                <motion.div
+                  key={g.id}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.15 }}
                 >
-                  <div className="flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between text-xs text-neutral-400">
-                      <div className="flex items-center gap-1.5">
-                        {getCategoryIcon(g.category)}
-                        <span className="capitalize">{g.category}</span>
+                  <Card
+                    onClick={() => {
+                      setActiveGoalId(g.id);
+                      setPreviewPercent(null);
+                    }}
+                    className={`flex flex-col justify-between gap-5 sm:gap-6 cursor-pointer transition-colors ${
+                      isSelected ? 'bg-neutral-850' : 'bg-neutral-900 hover:bg-neutral-850'
+                    }`}
+                  >
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between text-xs text-neutral-400">
+                        <div className="flex items-center gap-1.5">
+                          {getCategoryIcon(g.category)}
+                          <span className="capitalize">{g.category}</span>
+                        </div>
+                        <span>{pct}%</span>
                       </div>
-                      <span>{pct}%</span>
+                      <h4 className="text-base text-neutral-100 font-light">
+                        {g.title}
+                      </h4>
+                      <div className="text-xl text-neutral-100 pt-1 font-light">
+                        {formatAmount(g.currentAmount, g.currency)}
+                      </div>
+                      <span className="text-xs text-neutral-400">
+                        Target of {formatAmount(g.targetAmount, g.currency)}
+                      </span>
                     </div>
-                    <h4 className="text-base text-neutral-100 font-light">
-                      {g.title}
-                    </h4>
-                    <div className="text-xl text-neutral-100 pt-1 font-light">
-                      {formatAmount(g.currentAmount, g.currency)}
-                    </div>
-                    <span className="text-xs text-neutral-400">
-                      Target of {formatAmount(g.targetAmount, g.currency)}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center justify-between pt-3 text-xs text-neutral-400">
-                    <span>{isSelected ? 'Viewing in 3D' : 'Inspect in 3D'}</span>
-                    <ArrowUpRight01Icon size={14} />
-                  </div>
-                </Card>
-              </motion.div>
-            );
-          })}
+                    <div className="flex items-center justify-between pt-3 text-xs text-neutral-400">
+                      <span>{isSelected ? 'Viewing in 3D' : 'Inspect in 3D'}</span>
+                      <ArrowUpRight01Icon size={14} />
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })
+          )}
         </div>
       </section>
 
@@ -588,36 +613,42 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="bg-neutral-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col gap-3">
-          {transactions.slice(0, 4).map((tx) => (
-            <div
-              key={tx.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-2 text-xs text-neutral-200"
-            >
-              <div className="flex items-center gap-3.5">
-                <Coins01Icon size={16} className="text-neutral-300 flex-shrink-0" />
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-neutral-100">{tx.goalTitle}</span>
-                  <span className="text-neutral-400">{tx.note || tx.type}</span>
+          {transactions.length === 0 ? (
+            <div className="text-center py-6 text-xs text-neutral-400 font-light">
+              No recent settlement activity recorded. Create a goal box or accept a prompt to begin.
+            </div>
+          ) : (
+            transactions.slice(0, 4).map((tx) => (
+              <div
+                key={tx.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-2 text-xs text-neutral-200"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Coins01Icon size={16} className="text-neutral-300 flex-shrink-0" />
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-neutral-100">{tx.goalTitle}</span>
+                    <span className="text-neutral-400">{tx.note || tx.type}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 pt-1 sm:pt-0">
+                  <span className="text-neutral-400 text-2xs truncate max-w-[120px] sm:max-w-xs">
+                    {tx.txHash.slice(0, 16)}...
+                  </span>
+                  <span className="text-neutral-400">{tx.date}</span>
+                  <span
+                    className={`font-medium ${
+                      tx.type === 'withdrawal'
+                        ? 'text-neutral-300'
+                        : 'text-neutral-100'
+                    }`}
+                  >
+                    {formatAmount(tx.amount, tx.currency)} {tx.type === 'withdrawal' ? 'out' : 'in'}
+                  </span>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 pt-1 sm:pt-0">
-                <span className="text-neutral-400 text-2xs truncate max-w-[120px] sm:max-w-xs">
-                  {tx.txHash.slice(0, 16)}...
-                </span>
-                <span className="text-neutral-400">{tx.date}</span>
-                <span
-                  className={`font-medium ${
-                    tx.type === 'withdrawal'
-                      ? 'text-neutral-300'
-                      : 'text-neutral-100'
-                  }`}
-                >
-                  {formatAmount(tx.amount, tx.currency)} {tx.type === 'withdrawal' ? 'out' : 'in'}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 

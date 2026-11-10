@@ -12,6 +12,7 @@ import {
   SavingsCommunity,
 } from '../types';
 import {
+  executeSettlement,
   simulateNimiqSettlement,
   calculateWithdrawalDetails,
   usdtToNim,
@@ -32,6 +33,14 @@ import {
   getSecureSessionItem,
   removeSecureSessionItem,
 } from '../services/secureSession';
+import {
+  connectLiveEvmWallet,
+  connectLiveNimiqHub,
+  getLiveWalletSession,
+  disconnectLiveWallet,
+  fetchLiveNimPrice,
+  LiveWalletSession,
+} from '../services/liveWalletService';
 
 interface SavingsContextType {
   goals: SavingsGoal[];
@@ -244,20 +253,19 @@ const defaultTransactions: Transaction[] = [
 ];
 
 const defaultWallet: WalletInfo = {
-  nimiqAddress: 'NQ42 8X7K M9V1 B2L8 QP03 7N92 Y44D 10KL',
-  balanceNim: 742857,
-  balanceUsdt: 2500,
+  nimiqAddress: '',
+  balanceNim: 0,
+  balanceUsdt: 0,
   nimPriceUsd: 0.0035,
-  freeEmergencyWithdrawalsRemaining: 2,
-  sponsoredTxCount: 32,
-  isConnected: true,
-  connectedProvider: 'Nimiq Hub',
+  freeEmergencyWithdrawalsRemaining: 3,
+  sponsoredTxCount: 0,
+  isConnected: false,
 };
 
 const defaultStreak: SavingsStreakInfo = {
-  currentDays: 14,
-  longestDays: 28,
-  lastDepositDate: '2026 11 09',
+  currentDays: 0,
+  longestDays: 0,
+  lastDepositDate: '',
   freezesRemaining: 2,
 };
 
@@ -477,8 +485,8 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return localStorage.getItem('nimisave_topic') || 'Arsenal';
   });
 
-  const [isWalletConnected, setIsWalletConnected] = useState<boolean>(true);
-  const [walletProvider, setWalletProvider] = useState<string | null>('Nimiq Hub');
+  const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
+  const [walletProvider, setWalletProvider] = useState<string | null>(null);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
   const openConnectModal = () => setIsConnectModalOpen(true);
   const closeConnectModal = () => setIsConnectModalOpen(false);
@@ -507,49 +515,24 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('nimisave_streak', JSON.stringify(streak));
   }, [streak]);
 
-  // Restore encrypted session on load
-  useEffect(() => {
-    getSecureSessionItem<{ isConnected: boolean; connectedProvider?: string }>('nimisave_secure_auth')
-      .then((session) => {
-        if (session && session.isConnected) {
-          setIsWalletConnected(true);
-          if (session.connectedProvider) {
-            setWalletProvider(session.connectedProvider);
-            setWallet((prev) => ({
-              ...prev,
-              isConnected: true,
-              connectedProvider: session.connectedProvider,
-            }));
-          }
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const syncUserCloudData = async (address: string) => {
+    if (!isSupabaseConfigured() || !address) return;
 
-  // Sync with Supabase on startup or wallet change
-  useEffect(() => {
-    if (!isSupabaseConfigured() || !wallet.nimiqAddress) return;
-
-    let isMounted = true;
-
-    async function syncFromSupabase() {
+    try {
       const [remoteGoals, remoteTx, remoteProfile] = await Promise.all([
-        fetchRemoteGoals(wallet.nimiqAddress),
-        fetchRemoteTransactions(wallet.nimiqAddress),
-        fetchRemoteUserProfile(wallet.nimiqAddress),
+        fetchRemoteGoals(address),
+        fetchRemoteTransactions(address),
+        fetchRemoteUserProfile(address),
       ]);
 
-      if (!isMounted) return;
-
-      if (remoteGoals && remoteGoals.length > 0) {
+      if (remoteGoals !== null) {
         setGoals(remoteGoals);
-      } else if (goals.length > 0) {
-        for (const g of goals) {
-          upsertRemoteGoal(wallet.nimiqAddress, g);
+        if (remoteGoals.length > 0) {
+          setActiveGoalId(remoteGoals[0].id);
         }
       }
 
-      if (remoteTx && remoteTx.length > 0) {
+      if (remoteTx !== null) {
         setTransactions(remoteTx);
       }
 
@@ -558,41 +541,129 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (remoteProfile.topic) setSelectedTopic(remoteProfile.topic);
         if (remoteProfile.streak) setStreak(remoteProfile.streak);
       }
+    } catch (err) {
+      console.warn('Error syncing Supabase cloud data:', err);
+    }
+  };
+
+  // Restore live encrypted session on load
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initLiveEnvironment() {
+      try {
+        const livePrice = await fetchLiveNimPrice();
+        if (isMounted && livePrice > 0) {
+          setWallet((prev) => ({ ...prev, nimPriceUsd: livePrice }));
+        }
+      } catch {}
+
+      const existingSession = await getLiveWalletSession();
+      if (existingSession && isMounted) {
+        setIsWalletConnected(true);
+        setWalletProvider(existingSession.provider);
+        setWallet((prev) => ({
+          ...prev,
+          isConnected: true,
+          nimiqAddress: existingSession.address,
+          connectedProvider: existingSession.provider,
+          balanceNim: existingSession.balanceNim,
+          balanceUsdt: existingSession.balanceUsdt,
+        }));
+
+        await syncUserCloudData(existingSession.address);
+      } else if (isMounted) {
+        setIsWalletConnected(false);
+        setWalletProvider(null);
+        setWallet((prev) => ({
+          ...prev,
+          isConnected: false,
+          nimiqAddress: '',
+        }));
+      }
     }
 
-    syncFromSupabase();
+    initLiveEnvironment();
+
+    if (typeof window !== 'undefined' && window.ethereum) {
+      const handleAccountsChanged = async (accounts: string[]) => {
+        if (!isMounted) return;
+        if (!accounts || accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          const newAddress = accounts[0].toLowerCase();
+          setWallet((prev) => ({ ...prev, nimiqAddress: newAddress }));
+          await syncUserCloudData(newAddress);
+        }
+      };
+
+      window.ethereum.on?.('accountsChanged', handleAccountsChanged);
+
+      return () => {
+        isMounted = false;
+        window.ethereum?.removeListener?.('accountsChanged', handleAccountsChanged);
+      };
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [wallet.nimiqAddress]);
+  }, []);
 
   const connectWallet = async (provider: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    let session: LiveWalletSession;
+
+    if (provider === 'MetaMask and EVM') {
+      session = await connectLiveEvmWallet();
+    } else if (provider === 'Nimiq Hub') {
+      session = await connectLiveNimiqHub();
+    } else {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        session = await connectLiveEvmWallet();
+      } else {
+        session = await connectLiveNimiqHub();
+      }
+    }
+
     setIsWalletConnected(true);
-    setWalletProvider(provider);
+    setWalletProvider(session.provider);
     setWallet((prev) => ({
       ...prev,
       isConnected: true,
-      connectedProvider: provider,
+      nimiqAddress: session.address,
+      connectedProvider: session.provider,
+      balanceNim: session.balanceNim,
+      balanceUsdt: session.balanceUsdt,
     }));
-    setSecureSessionItem('nimisave_secure_auth', {
-      isConnected: true,
-      connectedProvider: provider,
-      address: wallet.nimiqAddress,
-      sessionStartedAt: Date.now(),
-    });
+
+    try {
+      const livePrice = await fetchLiveNimPrice();
+      if (livePrice > 0) {
+        setWallet((prev) => ({ ...prev, nimPriceUsd: livePrice }));
+      }
+    } catch {}
+
+    await syncUserCloudData(session.address);
   };
 
   const disconnectWallet = () => {
+    disconnectLiveWallet();
     setIsWalletConnected(false);
     setWalletProvider(null);
-    setWallet((prev) => ({
-      ...prev,
+    setWallet({
+      nimiqAddress: '',
+      balanceNim: 0,
+      balanceUsdt: 0,
+      nimPriceUsd: 0.0035,
+      freeEmergencyWithdrawalsRemaining: 3,
+      sponsoredTxCount: 0,
       isConnected: false,
-      connectedProvider: undefined,
-    }));
-    removeSecureSessionItem('nimisave_secure_auth');
+    });
+    setGoals([]);
+    setTransactions([]);
+    localStorage.removeItem('nimisave_goals');
+    localStorage.removeItem('nimisave_transactions');
+    localStorage.removeItem('nimisave_wallet');
   };
 
   const setHobbyPreference = (hobby: HobbyCategory, topic: string) => {
@@ -661,7 +732,7 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!targetGoal) return false;
 
     const usedCurrency: Currency = depositCurrency || targetGoal.currency;
-    const settlement = await simulateNimiqSettlement(wallet.nimiqAddress, amount, usedCurrency);
+    const settlement = await executeSettlement(wallet.nimiqAddress, wallet.nimiqAddress, amount, usedCurrency);
 
     let addedAmount = amount;
     if (usedCurrency !== targetGoal.currency) {
@@ -742,7 +813,7 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       wallet.freeEmergencyWithdrawalsRemaining
     );
 
-    const settlement = await simulateNimiqSettlement(wallet.nimiqAddress, amount, withdrawCurrency);
+    const settlement = await executeSettlement(wallet.nimiqAddress, wallet.nimiqAddress, amount, withdrawCurrency);
 
     const now = new Date();
     const dateStr = `${now.getFullYear()} ${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}`;

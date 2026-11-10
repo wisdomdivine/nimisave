@@ -26,21 +26,22 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
   } = useSavings();
 
   const [isConnecting, setIsConnecting] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<string>('Nimiq Hub');
+  const [selectedProvider, setSelectedProvider] = useState<string>('MetaMask and EVM');
   const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const providers = [
     {
-      name: 'Nimiq Hub',
-      desc: 'Browser native non custodial wallet with zero extension install required',
-      icon: Coins01Icon,
-      accentColor: 'text-amber-400',
-    },
-    {
       name: 'MetaMask and EVM',
-      desc: 'Connect your Web3 wallet for cross chain USDT and USDC settlement',
+      desc: 'Live Sign In With Ethereum authentication for instant non custodial settlement',
       icon: Wallet01Icon,
       accentColor: 'text-emerald-400',
+    },
+    {
+      name: 'Nimiq Hub',
+      desc: 'Live browser native non custodial wallet with zero extension install required',
+      icon: Coins01Icon,
+      accentColor: 'text-amber-400',
     },
     {
       name: 'Ledger Hardware',
@@ -51,11 +52,21 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
   ];
 
   const handleConnect = async (provName: string) => {
+    setErrorMessage('');
     setSelectedProvider(provName);
     setIsConnecting(true);
-    await connectWallet(provName);
-    setIsConnecting(false);
-    onClose();
+
+    try {
+      if (provName === 'MetaMask and EVM' && (typeof window === 'undefined' || !window.ethereum)) {
+        throw new Error('No EVM wallet detected. Please install MetaMask, Rabby, or open in a Web3 browser.');
+      }
+      await connectWallet(provName);
+      setIsConnecting(false);
+      onClose();
+    } catch (err: any) {
+      setIsConnecting(false);
+      setErrorMessage(err?.message || 'Failed to authenticate wallet');
+    }
   };
 
   const handleCopy = () => {
@@ -75,6 +86,12 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
         <p className="text-xs text-neutral-400 leading-relaxed font-light -mt-2">
           Connect your non custodial wallet to sign gas sponsored savings transactions and verify your on chain ownership.
         </p>
+
+        {errorMessage && (
+          <div className="bg-neutral-850 p-3.5 rounded-xl text-xs text-amber-300 font-light leading-relaxed">
+            {errorMessage}
+          </div>
+        )}
 
         {isWalletConnected ? (
           <div className="flex flex-col gap-5">

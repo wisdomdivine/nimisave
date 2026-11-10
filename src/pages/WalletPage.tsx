@@ -17,12 +17,12 @@ export const WalletPage: React.FC = () => {
   const { wallet, transactions } = useSavings();
   const [copied, setCopied] = useState(false);
 
-  const nimBalance = typeof wallet?.balanceNim === 'number' ? wallet.balanceNim : 742857;
-  const usdtBalance = typeof wallet?.balanceUsdt === 'number' ? wallet.balanceUsdt : 2500;
+  const nimBalance = typeof wallet?.balanceNim === 'number' ? wallet.balanceNim : 0;
+  const usdtBalance = typeof wallet?.balanceUsdt === 'number' ? wallet.balanceUsdt : 0;
   const nimValueInUsdt = nimToUsdt(nimBalance);
-  const address = wallet?.nimiqAddress || 'NQ42 8X7K M9V1 B2L8 QP03 7N92 Y44D 10KL';
-  const freePasses = typeof wallet?.freeEmergencyWithdrawalsRemaining === 'number' ? wallet.freeEmergencyWithdrawalsRemaining : 2;
-  const sponsoredCount = typeof wallet?.sponsoredTxCount === 'number' ? wallet.sponsoredTxCount : 32;
+  const address = wallet?.nimiqAddress || '';
+  const freePasses = typeof wallet?.freeEmergencyWithdrawalsRemaining === 'number' ? wallet.freeEmergencyWithdrawalsRemaining : 3;
+  const sponsoredCount = typeof wallet?.sponsoredTxCount === 'number' ? wallet.sponsoredTxCount : 0;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(address);
@@ -107,27 +107,29 @@ export const WalletPage: React.FC = () => {
         </div>
 
         <div className="bg-neutral-950 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          <span className="text-xs text-neutral-200 break-all font-mono sm:font-sans">
-            {formatNimiqAddress(address)}
+          <span className="text-xs text-neutral-300 break-all font-mono sm:font-sans">
+            {address ? formatNimiqAddress(address) : 'No settlement wallet connected'}
           </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleCopy}
-            className="w-full sm:w-auto flex items-center justify-center gap-2"
-          >
-            {copied ? (
-              <>
-                <CheckmarkCircle01Icon size={15} />
-                <span>Copied to Clipboard</span>
-              </>
-            ) : (
-              <>
-                <Copy01Icon size={15} />
-                <span>Copy Address</span>
-              </>
-            )}
-          </Button>
+          {address && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopy}
+              className="w-full sm:w-auto flex items-center justify-center gap-2"
+            >
+              {copied ? (
+                <>
+                  <CheckmarkCircle01Icon size={15} />
+                  <span>Copied to Clipboard</span>
+                </>
+              ) : (
+                <>
+                  <Copy01Icon size={15} />
+                  <span>Copy Address</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </Card>
 
@@ -178,45 +180,50 @@ export const WalletPage: React.FC = () => {
         </h3>
 
         <div className="bg-neutral-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col gap-3">
-          {(transactions || []).map((tx) => {
-            const isWithdrawal = tx.type === 'withdrawal';
-            const TxIcon = isWithdrawal ? ArrowUpRight01Icon : ArrowDownLeft01Icon;
-            const txAmount = typeof tx?.amount === 'number' ? tx.amount : 0;
-            const txCurrency = tx?.currency || 'USDT';
-            const txFee = typeof tx?.fee === 'number' ? tx.fee : 0;
-            const txHash = tx?.txHash || '';
+          {(!transactions || transactions.length === 0) ? (
+            <div className="text-center py-10 text-neutral-400 text-xs font-light">
+              No settlement transactions recorded yet. Make a voluntary deposit to see on chain records.
+            </div>
+          ) : (
+            transactions.map((tx) => {
+              const isWithdrawal = tx.type === 'withdrawal';
+              const TxIcon = isWithdrawal ? ArrowUpRight01Icon : ArrowDownLeft01Icon;
+              const txAmount = typeof tx?.amount === 'number' ? tx.amount : 0;
+              const txCurrency = tx?.currency || 'USDT';
+              const txFee = typeof tx?.fee === 'number' ? tx.fee : 0;
+              const txHash = tx?.txHash || '';
 
-            return (
-              <div
-                key={tx.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-3 text-xs text-neutral-200"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="p-2 sm:p-2.5 bg-neutral-950 rounded-xl flex items-center justify-center text-neutral-300 flex-shrink-0">
-                    <TxIcon size={16} />
+              return (
+                <div
+                  key={tx.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-3 text-xs text-neutral-200"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="p-2 sm:p-2.5 bg-neutral-950 rounded-xl flex items-center justify-center text-neutral-300 flex-shrink-0">
+                      <TxIcon size={16} />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-neutral-100 text-sm font-light">{tx.goalTitle || 'Goal Box'}</span>
+                      <span className="text-neutral-400 capitalize">{tx.note || tx.type}</span>
+                      <span className="text-neutral-500 text-2xs break-all max-w-[200px] sm:max-w-md truncate">
+                        hash {txHash}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-neutral-100 text-sm font-light">{tx.goalTitle || 'Goal Box'}</span>
-                    <span className="text-neutral-400 capitalize">{tx.note || tx.type}</span>
-                    <span className="text-neutral-500 text-2xs break-all max-w-[200px] sm:max-w-md truncate">
-                      hash {txHash}
+
+                  <div className="flex items-center justify-between sm:flex-col sm:items-end gap-1 pt-1 sm:pt-0">
+                    <span className="text-neutral-100 text-sm font-medium">
+                      {formatAmount(txAmount, txCurrency)} {isWithdrawal ? 'out' : 'in'}
                     </span>
+                    <div className="flex items-center gap-2 sm:gap-1 text-neutral-400">
+                      <span>{tx.date || '2026 11 10'}</span>
+                      <span>Fee {txFee === 0 ? 'Zero (Sponsored)' : formatAmount(txFee, txCurrency)}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between sm:flex-col sm:items-end gap-1 pt-1 sm:pt-0">
-                  <span className="text-neutral-100 text-sm font-medium">
-                    {formatAmount(txAmount, txCurrency)} {isWithdrawal ? 'out' : 'in'}
-                  </span>
-                  <div className="flex items-center gap-2 sm:gap-1 text-neutral-400">
-                    <span>{tx.date || '2026 11 10'}</span>
-                    <span className="hidden sm:inline">·</span>
-                    <span>Fee {txFee === 0 ? 'Zero (Sponsored)' : formatAmount(txFee, txCurrency)}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </section>
     </motion.div>
