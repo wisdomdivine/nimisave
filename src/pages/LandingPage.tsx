@@ -5,7 +5,13 @@ import { useSavings } from '../context/SavingsContext';
 import { Logo } from '../components/common/Logo';
 
 export const LandingPage: React.FC = () => {
-  const { openConnectModal } = useSavings();
+  const { openConnectModal, isWalletConnected, wallet } = useSavings();
+
+  const shortAddress = React.useMemo(() => {
+    if (!wallet.nimiqAddress) return '';
+    const addr = wallet.nimiqAddress;
+    return addr.length > 10 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr;
+  }, [wallet.nimiqAddress]);
 
   return (
     <div className="h-screen min-h-screen max-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col justify-between overflow-hidden selection:bg-neutral-800 selection:text-neutral-100 px-4 py-6 sm:py-8">
@@ -86,7 +92,7 @@ export const LandingPage: React.FC = () => {
             onClick={openConnectModal}
             className="px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap shadow-sm bg-white text-neutral-950 hover:bg-neutral-200"
           >
-            Connect Wallet
+            {isWalletConnected ? shortAddress : 'Connect Wallet'}
           </button>
         </motion.div>
       </header>
