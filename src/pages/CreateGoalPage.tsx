@@ -8,7 +8,7 @@ export const CreateGoalPage: React.FC = () => {
 
   useEffect(() => {
     openCreateGoal();
-    navigate('/', { replace: true });
+    navigate('/dashboard', { replace: true });
   }, [openCreateGoal, navigate]);
 
   return null;

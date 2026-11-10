@@ -7,7 +7,7 @@ export const BottomNav: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Overview', icon: Home01Icon },
+    { path: '/dashboard', label: 'Overview', icon: Home01Icon },
     { path: '/prompts', label: 'Hobby Prompts', icon: CompassIcon },
     { path: '/communities', label: 'Communities', icon: Group01Icon },
     { path: '/wallet', label: 'Settlement', icon: Wallet01Icon },
