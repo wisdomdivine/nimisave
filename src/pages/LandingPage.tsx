@@ -2,28 +2,31 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
-import { Home01Icon } from 'hugeicons-react';
+import { Logo } from '../components/common/Logo';
 
 export const LandingPage: React.FC = () => {
   const { openConnectModal } = useSavings();
 
   return (
     <div className="h-screen min-h-screen max-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col justify-between overflow-hidden selection:bg-neutral-800 selection:text-neutral-100 px-4 py-6 sm:py-8">
-      {/* Floating Header styled after screenshot with Connect Wallet button */}
+      {/* Floating Header with Nimisave Logo and Connect Wallet button */}
       <header className="w-full flex justify-center z-30 flex-shrink-0">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full backdrop-blur-md shadow-sm bg-neutral-900/90 border border-neutral-800 text-neutral-200"
+          className="inline-flex items-center gap-3 sm:gap-4 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full backdrop-blur-md shadow-sm bg-neutral-900/90 border border-neutral-800 text-neutral-200"
         >
-          {/* Home Icon */}
+          {/* Brand Logo */}
           <Link
             to="/"
-            className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
-            title="Home"
+            className="p-0.5 text-white hover:text-neutral-300 transition-colors cursor-pointer flex items-center gap-2"
+            title="Nimisave"
           >
-            <Home01Icon size={18} />
+            <Logo size={19} className="text-white" />
+            <span className="font-light text-xs text-neutral-200 hidden sm:inline">
+              Nimisave
+            </span>
           </Link>
 
           {/* Divider */}
@@ -77,7 +80,7 @@ export const LandingPage: React.FC = () => {
           {/* Divider */}
           <div className="w-px h-4 sm:h-5 bg-neutral-800" />
 
-          {/* Connect Wallet Button (strictly Connect Wallet, no green dots, no pulses) */}
+          {/* Connect Wallet Button */}
           <button
             type="button"
             onClick={openConnectModal}
@@ -94,7 +97,7 @@ export const LandingPage: React.FC = () => {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="w-full flex justify-center py-2 sm:py-4"
+          className="w-full flex justify-center py-2 sm:py-3"
         >
           <img
             src="/illustration-windows-dark.png"
@@ -108,8 +111,15 @@ export const LandingPage: React.FC = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="flex flex-col items-center text-center gap-3 sm:gap-4 max-w-xl px-2"
+          className="flex flex-col items-center text-center gap-2.5 sm:gap-3.5 max-w-xl px-2"
         >
+          <div className="flex items-center gap-2 text-neutral-400">
+            <Logo size={16} className="text-neutral-300" />
+            <span className="text-xs font-light tracking-widest uppercase text-neutral-400">
+              Nimisave
+            </span>
+          </div>
+
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-tight text-white">
             Disciplined savings for life ahead
           </h1>
@@ -120,7 +130,7 @@ export const LandingPage: React.FC = () => {
           </p>
 
           {/* Enter Dashboard Button */}
-          <div className="pt-2 sm:pt-3">
+          <div className="pt-2">
             <Link
               to="/dashboard"
               className="inline-block bg-white text-neutral-950 hover:bg-neutral-200 px-7 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-colors text-center cursor-pointer shadow-sm"
