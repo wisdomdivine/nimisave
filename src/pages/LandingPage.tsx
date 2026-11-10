@@ -15,7 +15,7 @@ export const LandingPage: React.FC = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-3 sm:gap-4 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full backdrop-blur-md shadow-sm bg-neutral-900/90 border border-neutral-800 text-neutral-200"
+          className="inline-flex items-center gap-3 sm:gap-4 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full backdrop-blur-md shadow-sm bg-neutral-900/90 text-neutral-200"
         >
           {/* Brand Logo */}
           <Link
