@@ -20,6 +20,9 @@ import {
   Clock01Icon,
   FireIcon,
   Group01Icon,
+  FootballIcon,
+  Basketball01Icon,
+  GameController01Icon,
 } from 'hugeicons-react';
 import { Link } from 'react-router-dom';
 
@@ -73,6 +76,32 @@ export const DashboardPage: React.FC = () => {
     basketball: ['Golden State', 'Lakers', 'Celtics', 'Bucks'],
     gaming: ['Squad Raid', 'Valorant', 'Apex Legends', 'CS2'],
     crypto: ['Nimiq PoS', 'Staking Run', 'Halving Cycle'],
+  };
+
+  const hobbyCategories: {
+    key: HobbyCategory;
+    label: string;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+  }[] = [
+    { key: 'football', label: 'Football', icon: FootballIcon },
+    { key: 'basketball', label: 'Basketball', icon: Basketball01Icon },
+    { key: 'gaming', label: 'Gaming', icon: GameController01Icon },
+    { key: 'crypto', label: 'Crypto', icon: Coins01Icon },
+  ];
+
+  const getDynamicTopicLabel = (hobby: HobbyCategory): string => {
+    switch (hobby) {
+      case 'football':
+        return 'Choose club:';
+      case 'basketball':
+        return 'Choose team:';
+      case 'gaming':
+        return 'Choose game:';
+      case 'crypto':
+        return 'Choose focus:';
+      default:
+        return 'Choose topic:';
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -207,30 +236,36 @@ export const DashboardPage: React.FC = () => {
           </span>
         </div>
 
-        {/* Hobby category buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {(['football', 'basketball', 'gaming', 'crypto'] as HobbyCategory[]).map((cat) => {
-            const isSelected = selectedHobby === cat;
+        {/* Hobby category buttons with icons and content fit */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {hobbyCategories.map(({ key, label, icon: IconComp }) => {
+            const isSelected = selectedHobby === key;
             return (
               <button
-                key={cat}
+                key={key}
                 type="button"
-                onClick={() => setHobbyPreference(cat, topicOptions[cat][0])}
-                className={`py-2 px-3 text-xs capitalize rounded-xl cursor-pointer transition-colors ${
+                onClick={() => setHobbyPreference(key, topicOptions[key][0])}
+                className={`w-fit inline-flex items-center gap-2 py-2 px-3.5 text-xs rounded-xl cursor-pointer transition-colors ${
                   isSelected
-                    ? 'bg-neutral-800 text-neutral-100'
-                    : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-neutral-800 text-neutral-100 font-medium'
+                    : 'bg-neutral-950 text-neutral-400 hover:bg-neutral-850 hover:text-neutral-200'
                 }`}
               >
-                {cat}
+                <IconComp
+                  size={15}
+                  className={isSelected ? 'text-neutral-100' : 'text-neutral-400'}
+                />
+                <span>{label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Topic choices */}
+        {/* Dynamic Topic choices */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-xs text-neutral-400 mr-1">Choose team:</span>
+          <span className="text-xs text-neutral-400 mr-1">
+            {getDynamicTopicLabel(selectedHobby)}
+          </span>
           {topicOptions[selectedHobby].map((top) => {
             const isSelected = selectedTopic === top;
             return (
@@ -240,7 +275,7 @@ export const DashboardPage: React.FC = () => {
                 onClick={() => setHobbyPreference(selectedHobby, top)}
                 className={`px-3 py-1.5 text-xs rounded-lg cursor-pointer transition-colors ${
                   isSelected
-                    ? 'bg-neutral-100 text-neutral-950'
+                    ? 'bg-neutral-100 text-neutral-950 font-medium'
                     : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-750'
                 }`}
               >
