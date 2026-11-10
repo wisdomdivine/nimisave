@@ -89,3 +89,4 @@ create policy "Public insert transactions" on public.transactions for all using 
 
 create policy "Public read prompts" on public.prompts for select using (true);
 create policy "Public manage prompts" on public.prompts for all using (true) with check (true);
+

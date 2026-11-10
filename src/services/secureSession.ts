@@ -96,3 +96,4 @@ export function clearSecureSession(): void {
     console.warn('Failed to clear secure session:', err);
   }
 }
+
