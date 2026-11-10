@@ -19,15 +19,22 @@ interface CreateGoalModalProps {
 }
 
 export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClose }) => {
-  const { addGoal } = useSavings();
+  const { addGoal, wallet, isWalletConnected } = useSavings();
 
   const [title, setTitle] = useState('');
   const [goalType, setGoalType] = useState<GoalType>('target');
   const [category, setCategory] = useState<GoalCategory>('house');
   const [currency, setCurrency] = useState<Currency>('USDT');
   const [targetAmountStr, setTargetAmountStr] = useState('350000');
-  const [initialDepositStr, setInitialDepositStr] = useState('2500');
+  const [initialDepositStr, setInitialDepositStr] = useState('0');
   const [deadlineMonthsStr, setDeadlineMonthsStr] = useState('36');
+  const [depositError, setDepositError] = useState<string | null>(null);
+
+  const availableBalance = isWalletConnected
+    ? currency === 'USDT'
+      ? wallet.balanceUsdt
+      : wallet.balanceNim
+    : 0;
 
   const categories: {
     key: GoalCategory;
@@ -92,7 +99,7 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
     setCurrency(newCur);
     const defaults = getRealisticTarget(category, newCur);
     setTargetAmountStr(defaults.target);
-    setInitialDepositStr(defaults.initial);
+    setDepositError(null);
   };
 
   const handleCategoryChange = (newCat: GoalCategory) => {
@@ -102,7 +109,7 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
     }
     const defaults = getRealisticTarget(newCat, currency);
     setTargetAmountStr(defaults.target);
-    setInitialDepositStr(defaults.initial);
+    setDepositError(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,6 +119,26 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
     const deadlineMonths = parseInt(deadlineMonthsStr, 10) || 12;
 
     if (!title.trim()) return;
+
+    if (initialDeposit < 0) {
+      setDepositError('Initial deposit cannot be negative.');
+      return;
+    }
+
+    if (initialDeposit > 0) {
+      if (!isWalletConnected) {
+        setDepositError('Connect your wallet to make an initial deposit, or enter 0 to start with an empty box.');
+        return;
+      }
+      if (initialDeposit > availableBalance) {
+        setDepositError(
+          `Initial deposit exceeds available balance of ${currency === 'USDT' ? '$' : ''}${availableBalance.toLocaleString()} ${currency}.`
+        );
+        return;
+      }
+    }
+
+    setDepositError(null);
 
     addGoal({
       title: title.trim(),
@@ -128,9 +155,10 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
     setCategory('house');
     setGoalType('target');
     setCurrency('USDT');
-    setTargetAmountStr('10000');
-    setInitialDepositStr('100');
-    setDeadlineMonthsStr('12');
+    setTargetAmountStr('350000');
+    setInitialDepositStr('0');
+    setDeadlineMonthsStr('36');
+    setDepositError(null);
     onClose();
   };
 
@@ -345,15 +373,37 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
                 onChange={(e) => setTargetAmountStr(e.target.value)}
               />
 
-              <Input
-                label="Initial Deposit"
-                type="number"
-                min="0"
-                prefixText={currency === 'USDT' ? '$' : ''}
-                suffixText={currency}
-                value={initialDepositStr}
-                onChange={(e) => setInitialDepositStr(e.target.value)}
-              />
+              <div className="flex flex-col">
+                <Input
+                  label="Initial Deposit"
+                  type="number"
+                  min="0"
+                  step="any"
+                  prefixText={currency === 'USDT' ? '$' : ''}
+                  suffixText={currency}
+                  value={initialDepositStr}
+                  onChange={(e) => {
+                    setInitialDepositStr(e.target.value);
+                    setDepositError(null);
+                  }}
+                  error={depositError || undefined}
+                />
+                <div className="flex items-center justify-between text-xs text-neutral-400 mt-1 px-1 font-light">
+                  <span>Available balance:</span>
+                  <span className={availableBalance > 0 ? 'text-neutral-200' : 'text-neutral-400'}>
+                    {isWalletConnected
+                      ? currency === 'USDT'
+                        ? `$${wallet.balanceUsdt.toLocaleString()} USDT`
+                        : `${wallet.balanceNim.toLocaleString()} NIM`
+                      : '0 (wallet disconnected)'}
+                  </span>
+                </div>
+                {depositError && (
+                  <div className="text-xs text-rose-400 mt-1 px-1 font-light">
+                    {depositError}
+                  </div>
+                )}
+              </div>
             </div>
 
             {goalType === 'target' && (

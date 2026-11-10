@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Logo } from '../components/common/Logo';
+import { Sun01Icon, Moon02Icon } from 'hugeicons-react';
 
 export const LandingPage: React.FC = () => {
-  const { openConnectModal, isWalletConnected, wallet } = useSavings();
+  const { openConnectModal, isWalletConnected, wallet, theme, toggleTheme } = useSavings();
 
   const shortAddress = React.useMemo(() => {
     if (!wallet.nimiqAddress) return '';
@@ -82,6 +83,17 @@ export const LandingPage: React.FC = () => {
               />
             </svg>
           </Link>
+
+          {/* Theme Toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+            title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? <Moon02Icon size={16} /> : <Sun01Icon size={16} />}
+          </button>
 
           {/* Divider */}
           <div className="w-px h-4 sm:h-5 bg-neutral-800" />

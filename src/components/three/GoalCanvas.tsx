@@ -91,8 +91,8 @@ export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) =>
   };
 
   const fallbackStage = (
-    <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-neutral-925 p-8 select-none">
-      <div className="w-24 h-24 rounded-full bg-neutral-900 flex items-center justify-center shadow-inner">
+    <div data-testid="goal-canvas-fallback" className="w-full h-full flex flex-col items-center justify-center gap-4 bg-neutral-900 p-8 select-none">
+      <div className="w-24 h-24 rounded-full bg-neutral-950 flex items-center justify-center shadow-inner">
         {getCategoryIcon()}
       </div>
       <div className="flex flex-col items-center gap-1">
@@ -103,7 +103,7 @@ export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) =>
           {progress}% Assembled
         </span>
       </div>
-      <div className="w-48 h-1.5 bg-neutral-900 rounded-full overflow-hidden mt-2">
+      <div className="w-48 h-1.5 bg-neutral-950 rounded-full overflow-hidden mt-2">
         <div
           className="h-full bg-neutral-200 transition-all duration-500 rounded-full"
           style={{ width: `${progress}%` }}
@@ -113,7 +113,7 @@ export const GoalCanvas: React.FC<GoalCanvasProps> = ({ category, progress }) =>
   );
 
   return (
-    <div className="w-full h-96 sm:h-[460px] lg:h-[500px] bg-neutral-925 relative overflow-hidden rounded-2xl flex items-center justify-center">
+    <div data-testid="goal-canvas-stage" className="w-full h-96 sm:h-[460px] lg:h-[500px] bg-neutral-900 relative overflow-hidden rounded-2xl flex items-center justify-center">
       {!hasWebGL ? (
         fallbackStage
       ) : (

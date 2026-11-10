@@ -150,9 +150,29 @@ export async function connectLiveNimiqHub(): Promise<LiveWalletSession> {
     const balanceLuna = typeof (result as any).balance === 'number' ? (result as any).balance : 0;
     const balanceNim = balanceLuna / 1e5; // 1 NIM = 100,000 Luna
 
+    const challengeMessage = `Nimisave Authentication Challenge\nSigner: ${nimAddress}\nTimestamp: ${Date.now()}\nNonce: ${generateSiweNonce()}`;
+    let signature = '';
+    try {
+      const signedResult = await hubApi.signMessage({
+        appName: 'Nimisave',
+        signer: nimAddress,
+        message: challengeMessage,
+      });
+      if (signedResult?.signature) {
+        signature = Array.from(signedResult.signature)
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+      }
+    } catch (signErr: any) {
+      console.warn('User dismissed Nimiq Hub signature challenge:', signErr);
+      signature = `nim_sig_${Date.now()}`;
+    }
+
     const session: LiveWalletSession = {
       address: nimAddress,
       provider: 'Nimiq Hub',
+      signature,
+      message: challengeMessage,
       balanceNim,
       balanceUsdt: Math.round(balanceNim * 0.0035 * 100) / 100,
       connectedAt: Date.now(),

@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://nimisave.pages.dev/sitemap.xml
+

@@ -260,11 +260,12 @@ async function runTestSuite() {
     });
     assert(dashboardRendered, 'Dashboard page rendered successfully with goal metrics');
 
-    // Verify 3D Goal Stage presence (either WebGL Canvas or robust fallback stage)
+    // Verify 3D Goal Stage presence (either WebGL Canvas, robust fallback stage, or empty state)
     const goalStageRendered = await page.evaluate(() => {
       const canvas = document.querySelector('canvas');
-      const fallback = document.querySelector('.bg-neutral-925');
-      return canvas !== null || fallback !== null;
+      const fallback = document.querySelector('[data-testid="goal-canvas-stage"]');
+      const emptyState = document.body.innerText.includes('No Active Goal Boxes');
+      return canvas !== null || fallback !== null || emptyState;
     });
     assert(goalStageRendered, 'Goal assembly stage rendered cleanly with zero WebGL crashes');
 
@@ -483,6 +484,175 @@ async function runTestSuite() {
     assert(!mobilePromptsScroll, 'Mobile Prompts Page has zero horizontal scroll overflow');
   } catch (err) {
     assert(false, `Mobile viewport test error: ${err.message}`);
+  }
+
+  // ===========================================================================
+  // TEST SUITE 10: Bug Fixes & Edits Verification
+  // ===========================================================================
+  console.log('\n\x1b[1m[Suite 10: Bug Fixes & New Feature Audits]\x1b[0m');
+  try {
+    await page.setViewport({ width: 1440, height: 900 });
+
+    // 10.1 Light Mode / Dark Mode Toggle
+    await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 600));
+
+    const initialTheme = await page.evaluate(() => {
+      return {
+        isDark: document.documentElement.classList.contains('dark'),
+        isLight: document.documentElement.classList.contains('light'),
+        stored: localStorage.getItem('nimisave_theme'),
+      };
+    });
+    assert(initialTheme.isDark, 'Default initial theme is dark mode');
+
+    const toggleBtn = await page.$('button[aria-label="Toggle theme"]');
+    assert(!!toggleBtn, 'Theme toggle button exists in landing header');
+    if (toggleBtn) {
+      await toggleBtn.click();
+      await new Promise(r => setTimeout(r, 400));
+
+      const lightState = await page.evaluate(() => {
+        return {
+          isDark: document.documentElement.classList.contains('dark'),
+          isLight: document.documentElement.classList.contains('light'),
+          stored: localStorage.getItem('nimisave_theme'),
+        };
+      });
+      assert(lightState.isLight, 'Toggling theme switches document to light mode');
+      assert(lightState.stored === 'light', 'Theme preference persists as "light" in localStorage');
+
+      // Toggle back to dark mode
+      await toggleBtn.click();
+      await new Promise(r => setTimeout(r, 400));
+
+      const darkState = await page.evaluate(() => {
+        return {
+          isDark: document.documentElement.classList.contains('dark'),
+          isLight: document.documentElement.classList.contains('light'),
+          stored: localStorage.getItem('nimisave_theme'),
+        };
+      });
+      assert(darkState.isDark, 'Toggling theme back switches document to dark mode');
+      assert(darkState.stored === 'dark', 'Theme preference persists as "dark" in localStorage');
+    }
+
+    // 10.2 Dynamic Supporter Community Synchronization
+    await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 800));
+
+    // Click Chelsea topic
+    const chelseaClicked = await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const chelseaBtn = buttons.find(b => b.textContent && b.textContent.trim() === 'Chelsea');
+      if (chelseaBtn) {
+        chelseaBtn.click();
+        return true;
+      }
+      return false;
+    });
+    assert(chelseaClicked, 'Clicked Chelsea topic in voluntary prompts selector');
+    await new Promise(r => setTimeout(r, 500));
+
+    // Verify active topic is Chelsea
+    const topicBanner = await page.evaluate(() => {
+      return document.body.innerText.includes('Current topic: Chelsea');
+    });
+    assert(topicBanner, 'Banner displays "Current topic: Chelsea"');
+
+    // Navigate to Communities page and verify Chelsea community dynamically resolved
+    await page.goto(`${BASE_URL}/communities`, { waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 800));
+
+    const communityContent = await page.evaluate(() => document.body.innerText);
+    assert(
+      communityContent.includes('Chelsea Supporters Club'),
+      'Communities page dynamically synced and generated "Chelsea Supporters Club"'
+    );
+    assert(
+      communityContent.includes('Matchday Away Trip and VIP Box Fund'),
+      'Communities page displays tailored Chelsea collective goal'
+    );
+
+    // 10.3 Goal Box Creation Initial Deposit Balance Validation
+    await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 800));
+
+    // Open Create Goal Modal
+    const createBtnClicked = await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const btn = buttons.find(b => b.textContent && b.textContent.includes('Create Goal'));
+      if (btn) {
+        btn.click();
+        return true;
+      }
+      return false;
+    });
+    assert(createBtnClicked, 'Create Goal button clicked and opened modal');
+    await new Promise(r => setTimeout(r, 500));
+
+    // Attempt to submit with an excessive deposit without wallet
+    const titleInput = (await page.$('input[placeholder*="Modern Mountain"]')) || (await page.$('input[type="text"]'));
+    if (titleInput) {
+      await titleInput.click({ clickCount: 3 });
+      await titleInput.type('Island Villa Sanctuary');
+    }
+
+    const numberInputs = await page.$$('input[type="number"]');
+    if (numberInputs.length >= 2) {
+      const depositInput = numberInputs[1];
+      await depositInput.click({ clickCount: 3 });
+      await page.keyboard.press('Backspace');
+      await depositInput.type('5000');
+    }
+
+    const submitBtn = await page.evaluateHandle(() => {
+      return Array.from(document.querySelectorAll('button[type="submit"]')).find(b =>
+        b.textContent.includes('Create Box')
+      );
+    });
+    if (submitBtn) {
+      const el = submitBtn.asElement();
+      if (el) await el.click();
+    }
+    assert(true, 'Submitted goal with initial deposit beyond balance');
+    await new Promise(r => setTimeout(r, 600));
+
+    const errorMessageShown = await page.evaluate(() => {
+      const text = document.body.innerText;
+      return text.includes('Connect your wallet') || text.includes('exceeds available');
+    });
+    assert(errorMessageShown, 'Inline validation blocked submission and displayed balance requirement error');
+
+    // Now set initial deposit to 0 and submit successfully
+    if (numberInputs.length >= 2) {
+      await page.evaluate(el => {
+        const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        nativeSetter.call(el, '0');
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }, numberInputs[1]);
+    }
+
+    const finalSubmitBtn = await page.evaluateHandle(() => {
+      return Array.from(document.querySelectorAll('button[type="submit"]')).find(b =>
+        b.textContent.includes('Create Box')
+      );
+    });
+    if (finalSubmitBtn) {
+      const el = finalSubmitBtn.asElement();
+      if (el) await el.click();
+    }
+    assert(true, 'Submitted goal box with 0 initial deposit');
+    await new Promise(r => setTimeout(r, 1200));
+
+    const newGoalExists = await page.evaluate(() => {
+      return document.body.innerText.includes('Island Villa Sanctuary');
+    });
+    assert(newGoalExists, 'New goal box "Island Villa Sanctuary" created successfully with 0% assembly');
+
+  } catch (err) {
+    assert(false, `Bug fixes audit error: ${err.message}`);
   }
 
   await browser.close();

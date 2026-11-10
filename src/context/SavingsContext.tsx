@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   SavingsGoal,
   GoalMilestone,
@@ -55,6 +55,8 @@ interface SavingsContextType {
   streak: SavingsStreakInfo;
   communities: SavingsCommunity[];
   activeCommunity: SavingsCommunity;
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
   isWalletConnected: boolean;
   walletProvider: string | null;
   connectWallet: (provider: string) => Promise<void>;
@@ -352,6 +354,56 @@ const defaultCommunities: SavingsCommunity[] = [
   },
 ];
 
+export function resolveCommunityForTopic(
+  topic: string,
+  hobby: HobbyCategory,
+  existingCommunities: SavingsCommunity[] = defaultCommunities
+): SavingsCommunity {
+  const match = existingCommunities.find(
+    (c) => c.teamOrTopic.toLowerCase() === topic.toLowerCase()
+  );
+  if (match) return match;
+
+  const slug = topic.toLowerCase().replace(/[^a-z0-9]/g, '');
+  let suffix = 'Club';
+  let goalTitle = `${topic} Fan Collective Milestone Pool`;
+  if (hobby === 'football') {
+    suffix = 'Supporters Club';
+    goalTitle = `${topic} Matchday Away Trip and VIP Box Fund`;
+  } else if (hobby === 'basketball') {
+    suffix = 'Warriors Hub';
+    goalTitle = `${topic} Courtside Arena Season Pass`;
+  } else if (hobby === 'gaming') {
+    suffix = 'Guild';
+    goalTitle = `${topic} Squad Gear and Tourney Fund`;
+  } else if (hobby === 'crypto') {
+    suffix = 'Stakers Circle';
+    goalTitle = `${topic} Compounding Staking and Node Pool`;
+  }
+
+  const hash = topic.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const memberCount = 750 + (hash % 1600);
+  const totalPoolUsdt = 45000 + ((hash * 137) % 220000);
+
+  const cleanTopic = topic.replace(/\s+/g, '');
+  return {
+    id: `comm_${slug || 'custom'}`,
+    name: `${topic} ${suffix}`,
+    hobbyCategory: hobby,
+    teamOrTopic: topic,
+    memberCount,
+    totalPoolUsdt,
+    collectiveGoalTitle: goalTitle,
+    leaderboard: [
+      { rank: 1, username: `${cleanTopic}Alpha`, totalSavedUsdt: 18200, streakDays: 52, badge: 'Syndicate Leader' },
+      { rank: 2, username: `${cleanTopic}Captain`, totalSavedUsdt: 14500, streakDays: 38, badge: 'Veteran Saver' },
+      { rank: 3, username: 'ChainDiscipline', totalSavedUsdt: 10800, streakDays: 29, badge: 'Goal Hunter' },
+      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
+      { rank: 5, username: 'ReserveKeeper', totalSavedUsdt: 4100, streakDays: 11, badge: 'Discipline Master' },
+    ],
+  };
+}
+
 const SavingsContext = createContext<SavingsContextType | undefined>(undefined);
 
 export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -494,6 +546,26 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState<boolean>(false);
   const openCreateGoal = () => setIsCreateGoalOpen(true);
   const closeCreateGoal = () => setIsCreateGoalOpen(false);
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('nimisave_theme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  useEffect(() => {
+    localStorage.setItem('nimisave_theme', theme);
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('nimisave_goals', JSON.stringify(goals));
@@ -698,9 +770,22 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const activeCommunity =
-    defaultCommunities.find((c) => c.teamOrTopic.toLowerCase() === selectedTopic.toLowerCase()) ||
-    defaultCommunities[0];
+  const activeCommunity = useMemo(() => {
+    return resolveCommunityForTopic(selectedTopic, selectedHobby, defaultCommunities);
+  }, [selectedTopic, selectedHobby]);
+
+  const communities = useMemo(() => {
+    const list = [...defaultCommunities];
+    const exists = list.some(
+      (c) =>
+        c.id === activeCommunity.id ||
+        c.teamOrTopic.toLowerCase() === activeCommunity.teamOrTopic.toLowerCase()
+    );
+    if (!exists) {
+      return [activeCommunity, ...list];
+    }
+    return list;
+  }, [activeCommunity]);
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) || goals[0] || null;
 
@@ -948,8 +1033,10 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         selectedTopic,
         setHobbyPreference,
         streak,
-        communities: defaultCommunities,
+        communities,
         activeCommunity,
+        theme,
+        toggleTheme,
         isWalletConnected,
         walletProvider,
         connectWallet,

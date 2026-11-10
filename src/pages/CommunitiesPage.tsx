@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
@@ -27,6 +27,12 @@ export const CommunitiesPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'club' | 'all'>('club');
   const [selectedCommunityId, setSelectedCommunityId] = useState<string>(activeCommunity.id);
+
+  useEffect(() => {
+    if (activeCommunity?.id) {
+      setSelectedCommunityId(activeCommunity.id);
+    }
+  }, [activeCommunity?.id]);
 
   const displayedCommunity =
     communities.find((c) => c.id === selectedCommunityId) || activeCommunity;
