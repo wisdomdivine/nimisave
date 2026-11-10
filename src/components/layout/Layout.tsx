@@ -11,7 +11,7 @@ export const Layout: React.FC = () => {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-200 flex flex-col selection:bg-neutral-800 selection:text-neutral-100">
       <Header />
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pt-6 sm:pt-8 pb-40 sm:pb-48 flex flex-col gap-10 sm:gap-12">
+      <main className="flex-1 w-full max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-36 sm:pb-44 flex flex-col gap-8 sm:gap-10">
         <Outlet />
       </main>
       <BottomNav />
