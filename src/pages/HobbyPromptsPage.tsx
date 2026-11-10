@@ -69,9 +69,9 @@ export const HobbyPromptsPage: React.FC = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-10"
+      className="flex flex-col gap-8 sm:gap-10"
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         <h1 className="text-2xl text-neutral-100">
           Hobby Savings Prompts
         </h1>
@@ -82,7 +82,7 @@ export const HobbyPromptsPage: React.FC = () => {
       </div>
 
       {/* Strict boundary notice */}
-      <div className="bg-neutral-900 p-6 rounded-2xl flex flex-col gap-2">
+      <div className="bg-neutral-900 p-5 sm:p-6 rounded-2xl flex flex-col gap-2">
         <span className="text-xs text-neutral-200">
           Responsible Financial Design Boundary
         </span>
@@ -100,14 +100,14 @@ export const HobbyPromptsPage: React.FC = () => {
       )}
 
       {/* Target box selection and filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+        <div className="flex flex-wrap items-center gap-2">
           {['all', 'football', 'basketball', 'gaming', 'crypto'].map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 text-xs transition-colors rounded-xl cursor-pointer ${
+              className={`px-3.5 sm:px-4 py-2 text-xs transition-colors rounded-xl cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-neutral-100 text-neutral-950 font-normal'
                   : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
@@ -118,7 +118,7 @@ export const HobbyPromptsPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <span className="text-xs text-neutral-300 whitespace-nowrap">
             Deposit Target:
           </span>
@@ -130,18 +130,18 @@ export const HobbyPromptsPage: React.FC = () => {
             }))}
             value={targetGoalId}
             onChange={setTargetGoalId}
-            className="w-64"
+            className="w-full sm:w-64"
           />
         </div>
       </div>
 
       {/* Prompts list */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {filteredPrompts.map((prompt) => (
-          <Card key={prompt.id} className="flex flex-col justify-between gap-6">
-            <div className="flex flex-col gap-4">
+          <Card key={prompt.id} className="flex flex-col justify-between gap-5 sm:gap-6">
+            <div className="flex flex-col gap-3.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   {getHobbyIcon(prompt.hobbyCategory)}
                   <span className="text-xs text-neutral-300 capitalize">
                     {prompt.hobbyCategory}
@@ -161,9 +161,9 @@ export const HobbyPromptsPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex items-center justify-between pt-3">
               <div className="flex flex-col">
-                <span className="text-xs text-neutral-300">
+                <span className="text-xs text-neutral-400">
                   Suggested Boost
                 </span>
                 <span className="text-lg text-neutral-100">

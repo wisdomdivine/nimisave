@@ -66,11 +66,11 @@ export const Select: React.FC<SelectProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full bg-neutral-900 hover:bg-neutral-850 text-neutral-100 px-4 py-3 text-sm rounded-xl flex items-center justify-between transition-colors cursor-pointer"
       >
-        <span className="truncate">{selectedOption ? selectedOption.label : 'Select option'}</span>
+        <span className="truncate mr-2">{selectedOption ? selectedOption.label : 'Select option'}</span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="text-neutral-400"
+          className="text-neutral-400 flex-shrink-0"
         >
           <ArrowDown01Icon size={16} />
         </motion.span>
@@ -83,7 +83,7 @@ export const Select: React.FC<SelectProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-2 z-50 bg-neutral-900 p-2 rounded-2xl flex flex-col gap-1"
+            className="absolute top-full left-0 right-0 mt-2 z-50 bg-neutral-900 p-2 rounded-2xl flex flex-col gap-1 max-h-64 overflow-y-auto"
           >
             {options.map((opt) => {
               const isSelected = opt.value === value;
@@ -98,13 +98,13 @@ export const Select: React.FC<SelectProps> = ({
                       : 'text-neutral-300 hover:bg-neutral-850 hover:text-neutral-100'
                   }`}
                 >
-                  <div className="flex flex-col">
-                    <span>{opt.label}</span>
+                  <div className="flex flex-col pr-2">
+                    <span className="truncate">{opt.label}</span>
                     {opt.description && (
-                      <span className="text-xs text-neutral-400">{opt.description}</span>
+                      <span className="text-xs text-neutral-400 truncate">{opt.description}</span>
                     )}
                   </div>
-                  {isSelected && <Tick01Icon size={16} className="text-neutral-100" />}
+                  {isSelected && <Tick01Icon size={16} className="text-neutral-100 flex-shrink-0" />}
                 </button>
               );
             })}
@@ -114,4 +114,3 @@ export const Select: React.FC<SelectProps> = ({
     </div>
   );
 };
-

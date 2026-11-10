@@ -32,23 +32,23 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 overflow-y-auto"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="w-full max-w-lg bg-neutral-900 p-8 rounded-3xl flex flex-col gap-6"
+            className="w-full max-w-lg bg-neutral-900 p-6 sm:p-8 rounded-2xl sm:rounded-3xl flex flex-col gap-6 my-auto max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg text-neutral-100">
+              <h3 className="text-lg text-neutral-100 pr-2">
                 {title}
               </h3>
               <button
                 type="button"
                 onClick={onClose}
-                className="text-neutral-400 hover:text-neutral-100 p-2 rounded-xl cursor-pointer transition-colors"
+                className="text-neutral-400 hover:text-neutral-100 p-2 rounded-xl cursor-pointer transition-colors flex-shrink-0"
               >
                 <Cancel01Icon size={18} />
               </button>

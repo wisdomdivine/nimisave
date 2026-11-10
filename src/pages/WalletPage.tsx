@@ -30,9 +30,9 @@ export const WalletPage: React.FC = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-10"
+      className="flex flex-col gap-8 sm:gap-10"
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         <h1 className="text-2xl text-neutral-100">
           Nimiq Settlement Wallet
         </h1>
@@ -43,48 +43,48 @@ export const WalletPage: React.FC = () => {
       </div>
 
       {/* Wallet balance cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <Card className="flex flex-col gap-3">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <Card className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-300">
               Settlement Balance
             </span>
             <Wallet01Icon size={16} className="text-neutral-300" />
           </div>
-          <div className="text-2xl text-neutral-100">
+          <div className="text-2xl sm:text-3xl text-neutral-100">
             {wallet.balanceNim.toLocaleString()} NIM
           </div>
-          <span className="text-xs text-neutral-300">
+          <span className="text-xs text-neutral-400">
             Equivalent to Approximately ${usdValue.toLocaleString()} USD
           </span>
         </Card>
 
-        <Card className="flex flex-col gap-3">
+        <Card className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-300">
               Emergency Passes
             </span>
             <Coins01Icon size={16} className="text-neutral-300" />
           </div>
-          <div className="text-2xl text-neutral-100">
+          <div className="text-2xl sm:text-3xl text-neutral-100">
             {wallet.freeEmergencyWithdrawalsRemaining} Free Passes
           </div>
-          <span className="text-xs text-neutral-300">
+          <span className="text-xs text-neutral-400">
             Zero Fees Applied for Immediate Life Emergencies
           </span>
         </Card>
 
-        <Card className="flex flex-col gap-3">
+        <Card className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-neutral-300">
               Gasless Transactions
             </span>
             <Coins01Icon size={16} className="text-neutral-300" />
           </div>
-          <div className="text-2xl text-neutral-100">
+          <div className="text-2xl sm:text-3xl text-neutral-100">
             {wallet.sponsoredTxCount} Settled
           </div>
-          <span className="text-xs text-neutral-300">
+          <span className="text-xs text-neutral-400">
             Transaction Fees Covered by Application Relayer
           </span>
         </Card>
@@ -96,20 +96,20 @@ export const WalletPage: React.FC = () => {
           <span className="text-xs text-neutral-300">
             Dedicated Nimiq Settlement Address
           </span>
-          <span className="text-xs text-neutral-300">
+          <span className="text-xs text-neutral-400">
             Mainnet Ready
           </span>
         </div>
 
-        <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <span className="text-xs text-neutral-200 break-all">
+        <div className="bg-neutral-950 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <span className="text-xs text-neutral-200 break-all font-mono sm:font-sans">
             {formatNimiqAddress(wallet.nimiqAddress)}
           </span>
           <Button
             variant="secondary"
             size="sm"
             onClick={handleCopy}
-            className="flex items-center gap-2"
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
           >
             {copied ? (
               <>
@@ -127,7 +127,7 @@ export const WalletPage: React.FC = () => {
       </Card>
 
       {/* Non punitive withdrawal terms */}
-      <div className="bg-neutral-900 p-8 rounded-2xl flex flex-col gap-4">
+      <div className="bg-neutral-900 p-6 sm:p-8 rounded-2xl flex flex-col gap-3 sm:gap-4">
         <h3 className="text-base text-neutral-100">
           Transparent Emergency Access Policy
         </h3>
@@ -140,12 +140,12 @@ export const WalletPage: React.FC = () => {
       </div>
 
       {/* Full on chain audit log */}
-      <section className="flex flex-col gap-6">
+      <section className="flex flex-col gap-5 sm:gap-6">
         <h3 className="text-lg text-neutral-100">
           Complete Settlement Records
         </h3>
 
-        <div className="bg-neutral-900 p-6 rounded-3xl flex flex-col gap-3">
+        <div className="bg-neutral-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col gap-3">
           {transactions.map((tx) => {
             const isWithdrawal = tx.type === 'withdrawal';
             const TxIcon = isWithdrawal ? ArrowUpRight01Icon : ArrowDownLeft01Icon;
@@ -153,31 +153,30 @@ export const WalletPage: React.FC = () => {
             return (
               <div
                 key={tx.id}
-                className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-3 text-xs text-neutral-200"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-xl hover:bg-neutral-850 transition-colors gap-3 text-xs text-neutral-200"
               >
-                <div className="flex items-center gap-4">
-                  <div className="p-2.5 bg-neutral-950 rounded-xl flex items-center justify-center text-neutral-300">
-                    <TxIcon size={18} />
+                <div className="flex items-center gap-3.5">
+                  <div className="p-2 sm:p-2.5 bg-neutral-950 rounded-xl flex items-center justify-center text-neutral-300 flex-shrink-0">
+                    <TxIcon size={16} />
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-0.5">
                     <span className="text-neutral-100 text-sm">{tx.goalTitle}</span>
-                    <span className="text-neutral-300 capitalize">{tx.note || tx.type}</span>
-                    <span className="text-neutral-400 text-2xs break-all">
+                    <span className="text-neutral-400 capitalize">{tx.note || tx.type}</span>
+                    <span className="text-neutral-500 text-2xs break-all max-w-[200px] sm:max-w-md truncate">
                       hash {tx.txHash}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col md:items-end gap-1">
-                  <span className="text-neutral-100 text-sm">
+                <div className="flex items-center justify-between sm:flex-col sm:items-end gap-1 pt-1 sm:pt-0">
+                  <span className="text-neutral-100 text-sm font-medium">
                     ${tx.amount} {isWithdrawal ? 'out' : 'in'}
                   </span>
-                  <span className="text-neutral-300">
-                    {tx.date}
-                  </span>
-                  <span className="text-neutral-300">
-                    Fee {tx.fee === 0 ? '0.00 (Sponsored)' : `$${tx.fee}`}
-                  </span>
+                  <div className="flex items-center gap-2 sm:gap-1 text-neutral-400">
+                    <span>{tx.date}</span>
+                    <span className="hidden sm:inline">·</span>
+                    <span>Fee {tx.fee === 0 ? '0.00 (Sponsored)' : `$${tx.fee}`}</span>
+                  </div>
                 </div>
               </div>
             );

@@ -52,7 +52,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Withdraw from ${goal.title}`}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6">
         <div className="text-xs text-neutral-400">
           Available in this goal box: {goal.currentAmount} dollars
         </div>
@@ -70,19 +70,19 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           placeholder="For example 50"
         />
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           <label className="text-xs text-neutral-400">
             Withdrawal category
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setIsEmergency(true)}
               className={`p-4 text-left transition-colors rounded-2xl cursor-pointer ${
-                isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
+                isEmergency ? 'bg-neutral-850 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <div className="text-sm">Emergency access</div>
+              <div className="text-sm text-neutral-100">Emergency access</div>
               <div className="text-xs text-neutral-400 mt-1">
                 {wallet.freeEmergencyWithdrawalsRemaining} free emergency passes left
               </div>
@@ -92,10 +92,10 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
               type="button"
               onClick={() => setIsEmergency(false)}
               className={`p-4 text-left transition-colors rounded-2xl cursor-pointer ${
-                !isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
+                !isEmergency ? 'bg-neutral-850 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <div className="text-sm">Standard early unlock</div>
+              <div className="text-sm text-neutral-100">Standard early unlock</div>
               <div className="text-xs text-neutral-400 mt-1">
                 Two percent fee capped at fifteen dollars
               </div>
@@ -103,7 +103,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           </div>
         </div>
 
-        <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col gap-2">
+        <div className="bg-neutral-950 p-4 sm:p-5 rounded-2xl flex flex-col gap-2">
           <div className="flex justify-between text-xs text-neutral-400">
             <span>Requested amount</span>
             <span className="text-neutral-200">{details.grossAmount} dollars</span>
@@ -120,7 +120,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
               {details.netAmount} dollars
             </span>
           </div>
-          <p className="text-xs text-neutral-500 mt-2">
+          <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
             {details.explanation}
           </p>
         </div>
@@ -131,14 +131,21 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
           </div>
         )}
 
-        <div className="flex justify-end gap-4 pt-2">
-          <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-4 pt-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto"
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             variant="secondary"
             disabled={isSubmitting || amount <= 0 || amount > goal.currentAmount}
+            className="w-full sm:w-auto"
           >
             {isSubmitting ? 'Settling with Nimiq...' : 'Confirm withdrawal'}
           </Button>

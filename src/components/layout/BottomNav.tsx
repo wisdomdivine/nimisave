@@ -13,7 +13,7 @@ export const BottomNav: React.FC = () => {
   ];
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900 p-2 rounded-2xl flex items-center gap-1">
+    <nav className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900/95 backdrop-blur-md p-1.5 sm:p-2 rounded-2xl flex items-center gap-1 max-w-[calc(100vw-1.5rem)] shadow-none">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         const IconComponent = item.icon;
@@ -22,7 +22,7 @@ export const BottomNav: React.FC = () => {
           <NavLink
             key={item.path}
             to={item.path}
-            className="relative px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 cursor-pointer transition-colors"
+            className="relative px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 cursor-pointer transition-colors whitespace-nowrap"
           >
             {isActive && (
               <motion.div
@@ -32,7 +32,7 @@ export const BottomNav: React.FC = () => {
               />
             )}
             <span
-              className={`relative z-10 flex items-center gap-2 transition-colors ${
+              className={`relative z-10 flex items-center gap-1.5 sm:gap-2 transition-colors ${
                 isActive ? 'text-neutral-100' : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -42,7 +42,6 @@ export const BottomNav: React.FC = () => {
           </NavLink>
         );
       })}
-    </div>
+    </nav>
   );
 };
-
