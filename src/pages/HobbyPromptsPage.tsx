@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Select } from '../components/common/Select';
+import { TopicPickerModal } from '../components/modals/TopicPickerModal';
+import { getPopularTopics, getTopicsByCategory } from '../data/hobbyTopics';
 import { HobbyCategory } from '../types';
 import { formatAmount } from '../services/nimiqService';
 import {
@@ -12,6 +14,7 @@ import {
   GameController01Icon,
   Coins01Icon,
   CheckmarkCircle01Icon,
+  Search01Icon,
 } from 'hugeicons-react';
 
 export const HobbyPromptsPage: React.FC = () => {
@@ -27,13 +30,19 @@ export const HobbyPromptsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [targetGoalId, setTargetGoalId] = useState<string>(goals[0]?.id || '');
   const [actionNotice, setActionNotice] = useState<string>('');
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
-  const topicOptions: Record<HobbyCategory, string[]> = {
-    football: ['Arsenal', 'Real Madrid', 'Chelsea', 'Barcelona', 'Man City'],
-    basketball: ['Golden State', 'Lakers', 'Celtics', 'Bucks'],
-    gaming: ['Squad Raid', 'Valorant', 'Apex Legends', 'CS2'],
-    crypto: ['Nimiq PoS', 'Staking Run', 'Halving Cycle'],
-  };
+  const popularTopics = useMemo(() => {
+    const popular = getPopularTopics(selectedHobby).map((t) => t.name);
+    if (selectedTopic && !popular.includes(selectedTopic)) {
+      return [selectedTopic, ...popular.slice(0, 5)];
+    }
+    return popular.slice(0, 6);
+  }, [selectedHobby, selectedTopic]);
+
+  const totalCategoryCount = useMemo(() => {
+    return getTopicsByCategory(selectedHobby).length;
+  }, [selectedHobby]);
 
   const hobbyCategories: {
     key: HobbyCategory;
@@ -151,7 +160,10 @@ export const HobbyPromptsPage: React.FC = () => {
               <button
                 key={key}
                 type="button"
-                onClick={() => setHobbyPreference(key, topicOptions[key][0])}
+                onClick={() => {
+                  const defaultTopic = getPopularTopics(key)[0]?.name || 'Arsenal';
+                  setHobbyPreference(key, defaultTopic);
+                }}
                 className={`w-fit inline-flex items-center gap-2 py-2 px-3.5 text-xs rounded-xl cursor-pointer transition-colors ${
                   isSelected
                     ? 'bg-neutral-800 text-neutral-100 font-medium'
@@ -173,8 +185,8 @@ export const HobbyPromptsPage: React.FC = () => {
           <span className="text-xs text-neutral-400 mr-1">
             {getDynamicTopicLabel(selectedHobby)}
           </span>
-          {topicOptions[selectedHobby].map((topic) => {
-            const isSelected = selectedTopic === topic;
+          {popularTopics.map((topic) => {
+            const isSelected = selectedTopic.toLowerCase() === topic.toLowerCase();
             return (
               <button
                 key={topic}
@@ -190,6 +202,14 @@ export const HobbyPromptsPage: React.FC = () => {
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setIsPickerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg cursor-pointer bg-neutral-950 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-850 transition-colors"
+          >
+            <Search01Icon size={13} />
+            <span>Browse all ({totalCategoryCount})</span>
+          </button>
         </div>
       </div>
 
@@ -314,6 +334,14 @@ export const HobbyPromptsPage: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      <TopicPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        category={selectedHobby}
+        selectedTopic={selectedTopic}
+        onSelectTopic={(name) => setHobbyPreference(selectedHobby, name)}
+      />
     </motion.div>
   );
 };

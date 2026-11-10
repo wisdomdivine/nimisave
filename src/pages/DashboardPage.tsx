@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useSavings } from '../context/SavingsContext';
 import { Card } from '../components/common/Card';
@@ -6,6 +6,8 @@ import { Button } from '../components/common/Button';
 import { GoalCanvas } from '../components/three/GoalCanvas';
 import { DepositModal } from '../components/modals/DepositModal';
 import { WithdrawModal } from '../components/modals/WithdrawModal';
+import { TopicPickerModal } from '../components/modals/TopicPickerModal';
+import { getPopularTopics, getTopicsByCategory } from '../data/hobbyTopics';
 import { formatAmount, usdtToNim, nimToUsdt } from '../services/nimiqService';
 import { HobbyCategory } from '../types';
 import {
@@ -23,6 +25,7 @@ import {
   FootballIcon,
   Basketball01Icon,
   GameController01Icon,
+  Search01Icon,
 } from 'hugeicons-react';
 import { Link } from 'react-router-dom';
 
@@ -46,6 +49,7 @@ export const DashboardPage: React.FC = () => {
 
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [previewPercent, setPreviewPercent] = useState<number | null>(null);
 
   // Compute total savings in USD/USDT equivalent across all goals
@@ -71,12 +75,17 @@ export const DashboardPage: React.FC = () => {
 
   const activePrompt = prompts.find((p) => !p.completed);
 
-  const topicOptions: Record<HobbyCategory, string[]> = {
-    football: ['Arsenal', 'Real Madrid', 'Chelsea', 'Barcelona', 'Man City'],
-    basketball: ['Golden State', 'Lakers', 'Celtics', 'Bucks'],
-    gaming: ['Squad Raid', 'Valorant', 'Apex Legends', 'CS2'],
-    crypto: ['Nimiq PoS', 'Staking Run', 'Halving Cycle'],
-  };
+  const popularTopics = useMemo(() => {
+    const popular = getPopularTopics(selectedHobby).map((t) => t.name);
+    if (selectedTopic && !popular.includes(selectedTopic)) {
+      return [selectedTopic, ...popular.slice(0, 5)];
+    }
+    return popular.slice(0, 6);
+  }, [selectedHobby, selectedTopic]);
+
+  const totalTopicsCount = useMemo(() => {
+    return getTopicsByCategory(selectedHobby).length;
+  }, [selectedHobby]);
 
   const hobbyCategories: {
     key: HobbyCategory;
@@ -244,7 +253,10 @@ export const DashboardPage: React.FC = () => {
               <button
                 key={key}
                 type="button"
-                onClick={() => setHobbyPreference(key, topicOptions[key][0])}
+                onClick={() => {
+                  const defaultTopic = getPopularTopics(key)[0]?.name || 'Arsenal';
+                  setHobbyPreference(key, defaultTopic);
+                }}
                 className={`w-fit inline-flex items-center gap-2 py-2 px-3.5 text-xs rounded-xl cursor-pointer transition-colors ${
                   isSelected
                     ? 'bg-neutral-800 text-neutral-100 font-medium'
@@ -266,8 +278,8 @@ export const DashboardPage: React.FC = () => {
           <span className="text-xs text-neutral-400 mr-1">
             {getDynamicTopicLabel(selectedHobby)}
           </span>
-          {topicOptions[selectedHobby].map((top) => {
-            const isSelected = selectedTopic === top;
+          {popularTopics.map((top) => {
+            const isSelected = selectedTopic.toLowerCase() === top.toLowerCase();
             return (
               <button
                 key={top}
@@ -283,6 +295,14 @@ export const DashboardPage: React.FC = () => {
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setIsPickerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg cursor-pointer bg-neutral-950 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-850 transition-colors"
+          >
+            <Search01Icon size={13} />
+            <span>Browse all ({totalTopicsCount})</span>
+          </button>
         </div>
       </section>
 
@@ -409,12 +429,12 @@ export const DashboardPage: React.FC = () => {
 
               {activeGoal.currency === 'USDT' && (
                 <span className="text-xs text-neutral-400 -mt-2">
-                  Equivalent to ≈ {usdtToNim(activeGoal.currentAmount).toLocaleString()} NIM
+                  Equivalent to {usdtToNim(activeGoal.currentAmount).toLocaleString()} NIM
                 </span>
               )}
               {activeGoal.currency === 'NIM' && (
                 <span className="text-xs text-neutral-400 -mt-2">
-                  Equivalent to ≈ ${nimToUsdt(activeGoal.currentAmount).toLocaleString()} USDT
+                  Equivalent to ${nimToUsdt(activeGoal.currentAmount).toLocaleString()} USDT
                 </span>
               )}
 
@@ -602,6 +622,13 @@ export const DashboardPage: React.FC = () => {
       </section>
 
       {/* Modals */}
+      <TopicPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        category={selectedHobby}
+        selectedTopic={selectedTopic}
+        onSelectTopic={(name) => setHobbyPreference(selectedHobby, name)}
+      />
       <DepositModal
         isOpen={isDepositOpen}
         onClose={() => setIsDepositOpen(false)}

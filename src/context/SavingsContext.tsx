@@ -17,6 +17,21 @@ import {
   usdtToNim,
   nimToUsdt,
 } from '../services/nimiqService';
+import {
+  fetchRemoteGoals,
+  upsertRemoteGoal,
+  updateRemoteGoalAmount,
+  fetchRemoteTransactions,
+  insertRemoteTransaction,
+  fetchRemoteUserProfile,
+  upsertRemoteUserProfile,
+} from '../services/supabaseService';
+import { isSupabaseConfigured } from '../lib/supabase';
+import {
+  setSecureSessionItem,
+  getSecureSessionItem,
+  removeSecureSessionItem,
+} from '../services/secureSession';
 
 interface SavingsContextType {
   goals: SavingsGoal[];
@@ -492,6 +507,66 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('nimisave_streak', JSON.stringify(streak));
   }, [streak]);
 
+  // Restore encrypted session on load
+  useEffect(() => {
+    getSecureSessionItem<{ isConnected: boolean; connectedProvider?: string }>('nimisave_secure_auth')
+      .then((session) => {
+        if (session && session.isConnected) {
+          setIsWalletConnected(true);
+          if (session.connectedProvider) {
+            setWalletProvider(session.connectedProvider);
+            setWallet((prev) => ({
+              ...prev,
+              isConnected: true,
+              connectedProvider: session.connectedProvider,
+            }));
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Sync with Supabase on startup or wallet change
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !wallet.nimiqAddress) return;
+
+    let isMounted = true;
+
+    async function syncFromSupabase() {
+      const [remoteGoals, remoteTx, remoteProfile] = await Promise.all([
+        fetchRemoteGoals(wallet.nimiqAddress),
+        fetchRemoteTransactions(wallet.nimiqAddress),
+        fetchRemoteUserProfile(wallet.nimiqAddress),
+      ]);
+
+      if (!isMounted) return;
+
+      if (remoteGoals && remoteGoals.length > 0) {
+        setGoals(remoteGoals);
+      } else if (goals.length > 0) {
+        for (const g of goals) {
+          upsertRemoteGoal(wallet.nimiqAddress, g);
+        }
+      }
+
+      if (remoteTx && remoteTx.length > 0) {
+        setTransactions(remoteTx);
+      }
+
+      if (remoteProfile) {
+        if (remoteProfile.hobby) setSelectedHobby(remoteProfile.hobby);
+        if (remoteProfile.topic) setSelectedTopic(remoteProfile.topic);
+        if (remoteProfile.streak) setStreak(remoteProfile.streak);
+      }
+    }
+
+    syncFromSupabase();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [wallet.nimiqAddress]);
+
   const connectWallet = async (provider: string) => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsWalletConnected(true);
@@ -501,6 +576,12 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       isConnected: true,
       connectedProvider: provider,
     }));
+    setSecureSessionItem('nimisave_secure_auth', {
+      isConnected: true,
+      connectedProvider: provider,
+      address: wallet.nimiqAddress,
+      sessionStartedAt: Date.now(),
+    });
   };
 
   const disconnectWallet = () => {
@@ -511,6 +592,7 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       isConnected: false,
       connectedProvider: undefined,
     }));
+    removeSecureSessionItem('nimisave_secure_auth');
   };
 
   const setHobbyPreference = (hobby: HobbyCategory, topic: string) => {
@@ -518,6 +600,10 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSelectedTopic(topic);
     localStorage.setItem('nimisave_hobby', hobby);
     localStorage.setItem('nimisave_topic', topic);
+
+    if (isSupabaseConfigured() && wallet.nimiqAddress) {
+      upsertRemoteUserProfile(wallet.nimiqAddress, { hobby, topic });
+    }
 
     setPrompts((prev) =>
       prev.map((p) => {
@@ -552,12 +638,16 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const dateStr = `${now.getFullYear()} ${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}`;
     setStreak((prev) => {
       const nextDays = prev.currentDays + 1;
-      return {
+      const nextStreak = {
         ...prev,
         currentDays: nextDays,
         longestDays: Math.max(prev.longestDays, nextDays),
         lastDepositDate: dateStr,
       };
+      if (isSupabaseConfigured() && wallet.nimiqAddress) {
+        upsertRemoteUserProfile(wallet.nimiqAddress, { streak: nextStreak });
+      }
+      return nextStreak;
     });
   };
 
@@ -615,6 +705,11 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
 
     extendStreak();
+
+    if (isSupabaseConfigured() && wallet.nimiqAddress) {
+      updateRemoteGoalAmount(goalId, targetGoal.currentAmount + addedAmount);
+      insertRemoteTransaction(wallet.nimiqAddress, newTx);
+    }
 
     return true;
   };
@@ -682,6 +777,11 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         ...prev,
         freeEmergencyWithdrawalsRemaining: Math.max(0, prev.freeEmergencyWithdrawalsRemaining - 1),
       }));
+    }
+
+    if (isSupabaseConfigured() && wallet.nimiqAddress) {
+      updateRemoteGoalAmount(goalId, targetGoal.currentAmount - deductionFromGoal);
+      insertRemoteTransaction(wallet.nimiqAddress, newTx);
     }
 
     return true;
@@ -758,6 +858,10 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setGoals((prev) => [...prev, newGoal]);
     setActiveGoalId(newId);
     setIsCreateGoalOpen(false);
+
+    if (isSupabaseConfigured() && wallet.nimiqAddress) {
+      upsertRemoteGoal(wallet.nimiqAddress, newGoal);
+    }
   };
 
   return (
