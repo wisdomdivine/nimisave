@@ -231,7 +231,17 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem('nimisave_goals');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((g: any) => ({
+            ...g,
+            currency: g.currency === 'NIM' ? 'NIM' : 'USDT',
+            category: g.category || 'house',
+            currentAmount: typeof g.currentAmount === 'number' ? g.currentAmount : 0,
+            targetAmount: typeof g.targetAmount === 'number' && g.targetAmount > 0 ? g.targetAmount : 1000,
+            milestones: Array.isArray(g.milestones) ? g.milestones : [],
+          }));
+        }
       } catch {
         return defaultGoals;
       }
@@ -245,7 +255,18 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem('nimisave_transactions');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((tx: any) => ({
+            ...tx,
+            amount: typeof tx.amount === 'number' ? tx.amount : 0,
+            currency: tx.currency === 'NIM' ? 'NIM' : 'USDT',
+            fee: typeof tx.fee === 'number' ? tx.fee : 0,
+            goalTitle: tx.goalTitle || 'Savings Box',
+            date: tx.date || '2026 11 10',
+            txHash: tx.txHash || 'e71b2d493a04cf91b29a8f2761038b556942ce2139487920ab3e8f192bce9100',
+          }));
+        }
       } catch {
         return defaultTransactions;
       }
@@ -257,7 +278,15 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem('nimisave_prompts');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((p: any) => ({
+            ...p,
+            currency: p.currency === 'NIM' ? 'NIM' : 'USDT',
+            suggestedAmount: typeof p.suggestedAmount === 'number' ? p.suggestedAmount : 20,
+            teamOrTopic: p.teamOrTopic || 'Arsenal',
+          }));
+        }
       } catch {
         return defaultPrompts;
       }
@@ -269,7 +298,21 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem('nimisave_wallet');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          ...defaultWallet,
+          ...parsed,
+          balanceNim: typeof parsed.balanceNim === 'number' ? parsed.balanceNim : defaultWallet.balanceNim,
+          balanceUsdt: typeof parsed.balanceUsdt === 'number' ? parsed.balanceUsdt : defaultWallet.balanceUsdt,
+          freeEmergencyWithdrawalsRemaining:
+            typeof parsed.freeEmergencyWithdrawalsRemaining === 'number'
+              ? parsed.freeEmergencyWithdrawalsRemaining
+              : defaultWallet.freeEmergencyWithdrawalsRemaining,
+          sponsoredTxCount:
+            typeof parsed.sponsoredTxCount === 'number'
+              ? parsed.sponsoredTxCount
+              : defaultWallet.sponsoredTxCount,
+        };
       } catch {
         return defaultWallet;
       }

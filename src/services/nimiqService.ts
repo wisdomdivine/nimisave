@@ -14,24 +14,28 @@ export interface NimiqTxResult {
 
 export const NIM_USD_RATE = 0.0035;
 
-export const formatNimiqAddress = (address: string): string => {
+export const formatNimiqAddress = (address?: string): string => {
+  if (!address) return 'NQ42 8X7K M9V1 B2L8 QP03 7N92 Y44D 10KL';
   const clean = address.replace(/\s+/g, '');
   return clean.match(/.{1,4}/g)?.join(' ') || address;
 };
 
-export const usdtToNim = (usdtAmount: number): number => {
-  return Math.round((usdtAmount / NIM_USD_RATE) * 100) / 100;
+export const usdtToNim = (usdtAmount?: number | null): number => {
+  const safe = typeof usdtAmount === 'number' && !isNaN(usdtAmount) ? usdtAmount : 0;
+  return Math.round((safe / NIM_USD_RATE) * 100) / 100;
 };
 
-export const nimToUsdt = (nimAmount: number): number => {
-  return Math.round(nimAmount * NIM_USD_RATE * 100) / 100;
+export const nimToUsdt = (nimAmount?: number | null): number => {
+  const safe = typeof nimAmount === 'number' && !isNaN(nimAmount) ? nimAmount : 0;
+  return Math.round(safe * NIM_USD_RATE * 100) / 100;
 };
 
-export const formatAmount = (amount: number, currency: Currency): string => {
+export const formatAmount = (amount?: number | null, currency?: Currency | string): string => {
+  const safeAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
   if (currency === 'NIM') {
-    return `${amount.toLocaleString()} NIM`;
+    return `${safeAmount.toLocaleString()} NIM`;
   }
-  return `${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} USDT`;
+  return `${safeAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} USDT`;
 };
 
 export const simulateNimiqSettlement = async (
@@ -53,7 +57,7 @@ export const simulateNimiqSettlement = async (
   return {
     txHash: randomHash,
     sender: 'NQ33 Y66V 8U30 G98N R9T4 Y9EB 8X5L 4D94 9NFE',
-    recipient: recipientAddress,
+    recipient: recipientAddress || 'NQ42 8X7K M9V1 B2L8 QP03 7N92 Y44D 10KL',
     amount,
     currency,
     nimEquivalent,
@@ -69,11 +73,14 @@ export const calculateWithdrawalDetails = (
   isEmergency: boolean,
   freeWithdrawalsRemaining: number
 ) => {
-  if (isEmergency && freeWithdrawalsRemaining > 0) {
+  const safeAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
+  const safeFree = typeof freeWithdrawalsRemaining === 'number' ? freeWithdrawalsRemaining : 0;
+
+  if (isEmergency && safeFree > 0) {
     return {
-      grossAmount: amount,
+      grossAmount: safeAmount,
       fee: 0,
-      netAmount: amount,
+      netAmount: safeAmount,
       currency,
       isFreeEmergency: true,
       explanation: 'Free emergency withdrawal applied. No fee deducted.',
@@ -81,12 +88,12 @@ export const calculateWithdrawalDetails = (
   }
 
   const standardFeeRate = 0.02;
-  const rawFee = amount * standardFeeRate;
+  const rawFee = safeAmount * standardFeeRate;
   const cappedFee = currency === 'NIM' ? Math.min(rawFee, Math.round(15 / NIM_USD_RATE)) : Math.min(rawFee, 15);
-  const netAmount = Math.max(0, amount - cappedFee);
+  const netAmount = Math.max(0, safeAmount - cappedFee);
 
   return {
-    grossAmount: amount,
+    grossAmount: safeAmount,
     fee: Math.round(cappedFee * 100) / 100,
     netAmount: Math.round(netAmount * 100) / 100,
     currency,

@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { HobbyPromptsPage } from './pages/HobbyPromptsPage';
 import { WalletPage } from './pages/WalletPage';
 import { CreateGoalPage } from './pages/CreateGoalPage';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,21 +20,23 @@ const queryClient = new QueryClient({
 
 export const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <SavingsProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="prompts" element={<HobbyPromptsPage />} />
-              <Route path="wallet" element={<WalletPage />} />
-              <Route path="create" element={<CreateGoalPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </SavingsProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <SavingsProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="prompts" element={<HobbyPromptsPage />} />
+                <Route path="wallet" element={<WalletPage />} />
+                <Route path="create" element={<CreateGoalPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </SavingsProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
