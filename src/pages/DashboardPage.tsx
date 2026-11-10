@@ -18,6 +18,8 @@ import {
   SafeIcon,
   CheckmarkCircle01Icon,
   Clock01Icon,
+  FireIcon,
+  Group01Icon,
 } from 'hugeicons-react';
 import { Link } from 'react-router-dom';
 
@@ -35,6 +37,8 @@ export const DashboardPage: React.FC = () => {
     selectedHobby,
     selectedTopic,
     setHobbyPreference,
+    streak,
+    activeCommunity,
   } = useSavings();
 
   const [isDepositOpen, setIsDepositOpen] = useState(false);
@@ -127,7 +131,7 @@ export const DashboardPage: React.FC = () => {
       </section>
 
       {/* Top statistics summary */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="flex flex-col gap-2">
           <span className="text-xs text-neutral-400">
             Total Funds Saved
@@ -140,27 +144,49 @@ export const DashboardPage: React.FC = () => {
           </span>
         </Card>
 
-        <Card className="flex flex-col gap-2">
-          <span className="text-xs text-neutral-400">
-            Active Visual Boxes
-          </span>
-          <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
-            {goals.length} Goals
-          </div>
-          <span className="text-xs text-neutral-400">
-            House Car Travel and Reserve Vault
-          </span>
-        </Card>
+        <Link to="/communities" className="block">
+          <Card className="flex flex-col gap-2 hover:bg-neutral-850 transition-colors cursor-pointer h-full">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-neutral-400">
+                Saving Streak
+              </span>
+              <FireIcon size={16} className="text-amber-400" />
+            </div>
+            <div className="text-2xl sm:text-3xl text-amber-400 font-light">
+              {streak.currentDays} Days
+            </div>
+            <span className="text-xs text-neutral-400">
+              Personal Record {streak.longestDays} Days Active
+            </span>
+          </Card>
+        </Link>
+
+        <Link to="/communities" className="block">
+          <Card className="flex flex-col gap-2 hover:bg-neutral-850 transition-colors cursor-pointer h-full">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-neutral-400">
+                Supporter Club
+              </span>
+              <Group01Icon size={16} className="text-neutral-300" />
+            </div>
+            <div className="text-xl sm:text-2xl text-neutral-100 font-light truncate">
+              {activeCommunity.name}
+            </div>
+            <span className="text-xs text-neutral-400">
+              {activeCommunity.memberCount.toLocaleString()} Savers Pooled
+            </span>
+          </Card>
+        </Link>
 
         <Card className="flex flex-col gap-2">
           <span className="text-xs text-neutral-400">
-            Emergency Access Passes
+            Emergency Access
           </span>
           <div className="text-2xl sm:text-3xl text-neutral-100 font-light">
             {wallet.freeEmergencyWithdrawalsRemaining} Free Passes
           </div>
           <span className="text-xs text-neutral-400">
-            Zero Penalty for Immediate Life Emergencies
+            Zero Penalty for Life Emergencies
           </span>
         </Card>
       </section>

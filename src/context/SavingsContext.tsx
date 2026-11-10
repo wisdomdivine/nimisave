@@ -8,6 +8,8 @@ import {
   Currency,
   GoalType,
   HobbyCategory,
+  SavingsStreakInfo,
+  SavingsCommunity,
 } from '../types';
 import {
   simulateNimiqSettlement,
@@ -26,6 +28,17 @@ interface SavingsContextType {
   selectedHobby: HobbyCategory;
   selectedTopic: string;
   setHobbyPreference: (hobby: HobbyCategory, topic: string) => void;
+  streak: SavingsStreakInfo;
+  communities: SavingsCommunity[];
+  activeCommunity: SavingsCommunity;
+  isWalletConnected: boolean;
+  walletProvider: string | null;
+  connectWallet: (provider: string) => Promise<void>;
+  disconnectWallet: () => void;
+  isConnectModalOpen: boolean;
+  setIsConnectModalOpen: (open: boolean) => void;
+  openConnectModal: () => void;
+  closeConnectModal: () => void;
   deposit: (goalId: string, amount: number, currency?: Currency, note?: string) => Promise<boolean>;
   withdraw: (goalId: string, amount: number, currency: Currency, isEmergency: boolean, note?: string) => Promise<boolean>;
   acceptPrompt: (promptId: string, goalId: string) => Promise<boolean>;
@@ -43,17 +56,17 @@ const defaultGoals: SavingsGoal[] = [
     title: 'Modern Dream House',
     category: 'house',
     goalType: 'target',
-    targetAmount: 25000,
-    currentAmount: 14500,
+    targetAmount: 350000,
+    currentAmount: 145000,
     currency: 'USDT',
-    deadlineMonths: 24,
+    deadlineMonths: 36,
     createdAt: '2026 01 15',
     milestones: [
-      { id: 'm1', name: 'Foundation Slab', description: 'Excavation and ground concrete', thresholdPercent: 20 },
-      { id: 'm2', name: 'Framing Pillars', description: 'Wood beams and core columns', thresholdPercent: 40 },
-      { id: 'm3', name: 'Enclosed Walls', description: 'Outer walls and entrance', thresholdPercent: 60 },
-      { id: 'm4', name: 'Pitched Roof', description: 'Roof structure and chimney', thresholdPercent: 80 },
-      { id: 'm5', name: 'Glass and Garden', description: 'Glazing porch and landscaping', thresholdPercent: 100 },
+      { id: 'm1', name: 'Foundation and Site Prep', description: 'Excavation ground grading and foundation slab', thresholdPercent: 20 },
+      { id: 'm2', name: 'Concrete Framing and Steel', description: 'Reinforced pillars core columns and floor beams', thresholdPercent: 40 },
+      { id: 'm3', name: 'Weatherproof Shell and Walls', description: 'Exterior insulated walls and secure entrance portal', thresholdPercent: 60 },
+      { id: 'm4', name: 'Architectural Roof and Glazing', description: 'Pitched modern roof skylights and panoramic glass', thresholdPercent: 80 },
+      { id: 'm5', name: 'Interior Finishes and Garden', description: 'Custom carpentry terrace and landscaping', thresholdPercent: 100 },
     ],
   },
   {
@@ -61,16 +74,16 @@ const defaultGoals: SavingsGoal[] = [
     title: 'Electric Performance Car',
     category: 'car',
     goalType: 'target',
-    targetAmount: 18000,
-    currentAmount: 7200,
+    targetAmount: 65000,
+    currentAmount: 24500,
     currency: 'USDT',
     deadlineMonths: 18,
     createdAt: '2026 03 01',
     milestones: [
-      { id: 'c1', name: 'Chassis Platform', description: 'Underbody floor and battery pack', thresholdPercent: 25 },
-      { id: 'c2', name: 'Sport Cockpit', description: 'Dual racing seats and dash display', thresholdPercent: 50 },
-      { id: 'c3', name: 'Aerodynamic Shell', description: 'Metallic bodywork and rear spoiler', thresholdPercent: 75 },
-      { id: 'c4', name: 'Wheels and LED Lights', description: 'Alloy wheels and full lighting array', thresholdPercent: 100 },
+      { id: 'c1', name: 'Structural Chassis and Core', description: 'Underbody aero floor and high capacity battery pack', thresholdPercent: 25 },
+      { id: 'c2', name: 'Sport Cockpit and Dash', description: 'Dual racing bucket seats and heads up display', thresholdPercent: 50 },
+      { id: 'c3', name: 'Aerodynamic Body Shell', description: 'Metallic bodywork rear diffuser and active spoiler', thresholdPercent: 75 },
+      { id: 'c4', name: 'Alloy Wheels and LED Lighting', description: 'Forged lightweight wheels and full LED light array', thresholdPercent: 100 },
     ],
   },
   {
@@ -78,16 +91,16 @@ const defaultGoals: SavingsGoal[] = [
     title: 'Tokyo and Kyoto Journey',
     category: 'trip',
     goalType: 'target',
-    targetAmount: 4500,
-    currentAmount: 2925,
+    targetAmount: 6500,
+    currentAmount: 3900,
     currency: 'USDT',
-    deadlineMonths: 10,
+    deadlineMonths: 8,
     createdAt: '2026 04 12',
     milestones: [
-      { id: 't1', name: 'Roundtrip Flights', description: 'Long haul flight tickets reserved', thresholdPercent: 25 },
-      { id: 't2', name: 'Ryokan Stays', description: 'Traditional accommodations booked', thresholdPercent: 50 },
-      { id: 't3', name: 'High Speed Shinkansen', description: 'Rail passes and city transits ready', thresholdPercent: 75 },
-      { id: 't4', name: 'Culinary and Excursions', description: 'Full cultural travel itinerary covered', thresholdPercent: 100 },
+      { id: 't1', name: 'Roundtrip Flights', description: 'Direct international flight tickets reserved', thresholdPercent: 25 },
+      { id: 't2', name: 'Ryokan and Boutique Stays', description: 'Traditional hot spring inn and boutique city hotel', thresholdPercent: 50 },
+      { id: 't3', name: 'Shinkansen Rail Passes', description: 'High speed bullet train tickets and regional transit', thresholdPercent: 75 },
+      { id: 't4', name: 'Culinary and Excursions', description: 'Full cultural travel itinerary and guided tours covered', thresholdPercent: 100 },
     ],
   },
   {
@@ -95,16 +108,16 @@ const defaultGoals: SavingsGoal[] = [
     title: 'Perpetual Reserve Vault',
     category: 'emergency',
     goalType: 'open_vault',
-    targetAmount: 1000000,
-    currentAmount: 742850,
+    targetAmount: 2500000,
+    currentAmount: 750000,
     currency: 'NIM',
     deadlineMonths: 36,
     createdAt: '2026 02 10',
     milestones: [
-      { id: 'v1', name: 'Reinforced Outer Casing', description: 'Heavy vault structural enclosure', thresholdPercent: 25 },
-      { id: 'v2', name: 'Steel Door and Dial', description: 'Rotary dial and bolt locking system', thresholdPercent: 50 },
-      { id: 'v3', name: 'Internal Gold Stacks', description: 'Physical gold bullion and reserve tokens', thresholdPercent: 75 },
-      { id: 'v4', name: 'Open Treasure Chest', description: 'Compounding perpetual safety cushion', thresholdPercent: 100 },
+      { id: 'v1', name: 'Reinforced Outer Casing', description: 'Heavy vault structural enclosure and armor plating', thresholdPercent: 25 },
+      { id: 'v2', name: 'Steel Door and Dial', description: 'Rotary combination wheel and deadbolt locking system', thresholdPercent: 50 },
+      { id: 'v3', name: 'Internal Gold Stacks', description: 'Physical gold bullion and reserve settlement tokens', thresholdPercent: 75 },
+      { id: 'v4', name: 'Open Treasure Chest', description: 'Compounding perpetual safety cushion with zero lockup', thresholdPercent: 100 },
     ],
   },
 ];
@@ -115,7 +128,7 @@ const defaultPrompts: HobbyPrompt[] = [
     title: 'Weekend Football Win',
     hobbyCategory: 'football',
     eventDescription: 'Your chosen club secured three points in the weekend league. Voluntary victory savings boost.',
-    suggestedAmount: 20,
+    suggestedAmount: 25,
     currency: 'USDT',
     teamOrTopic: 'Arsenal',
     completed: false,
@@ -125,7 +138,7 @@ const defaultPrompts: HobbyPrompt[] = [
     title: 'Basketball Game Night',
     hobbyCategory: 'basketball',
     eventDescription: 'Your team reached over 110 points tonight. Put aside a small boost toward your goal.',
-    suggestedAmount: 15,
+    suggestedAmount: 20,
     currency: 'USDT',
     teamOrTopic: 'Golden State',
     completed: false,
@@ -135,7 +148,7 @@ const defaultPrompts: HobbyPrompt[] = [
     title: 'Weekend Gaming Quest',
     hobbyCategory: 'gaming',
     eventDescription: 'Weekly gaming raid finished with your squad. Celebrate discipline by adding to your dream.',
-    suggestedAmount: 10,
+    suggestedAmount: 15,
     currency: 'USDT',
     teamOrTopic: 'Squad Raid',
     completed: false,
@@ -145,7 +158,7 @@ const defaultPrompts: HobbyPrompt[] = [
     title: 'Nimiq Network Milestone',
     hobbyCategory: 'crypto',
     eventDescription: 'Proof of Stake validators reached milestone block. Voluntary habit deposit with zero gas.',
-    suggestedAmount: 5000,
+    suggestedAmount: 10000,
     currency: 'NIM',
     teamOrTopic: 'Nimiq PoS',
     completed: false,
@@ -157,9 +170,9 @@ const defaultTransactions: Transaction[] = [
     id: 'tx_01',
     goalId: 'goal_trip',
     goalTitle: 'Tokyo and Kyoto Journey',
-    amount: 150,
+    amount: 250,
     currency: 'USDT',
-    equivalentAmount: 42857,
+    equivalentAmount: 71428,
     equivalentCurrency: 'NIM',
     type: 'deposit',
     date: '2026 11 09',
@@ -187,9 +200,9 @@ const defaultTransactions: Transaction[] = [
     id: 'tx_03',
     goalId: 'goal_car',
     goalTitle: 'Electric Performance Car',
-    amount: 150,
+    amount: 500,
     currency: 'USDT',
-    equivalentAmount: 42857,
+    equivalentAmount: 142857,
     equivalentCurrency: 'NIM',
     type: 'deposit',
     date: '2026 11 05',
@@ -202,9 +215,9 @@ const defaultTransactions: Transaction[] = [
     id: 'tx_04',
     goalId: 'goal_house',
     goalTitle: 'Modern Dream House',
-    amount: 20,
+    amount: 1000,
     currency: 'USDT',
-    equivalentAmount: 5714,
+    equivalentAmount: 285714,
     equivalentCurrency: 'NIM',
     type: 'prompt_deposit',
     date: '2026 11 02',
@@ -222,7 +235,99 @@ const defaultWallet: WalletInfo = {
   nimPriceUsd: 0.0035,
   freeEmergencyWithdrawalsRemaining: 2,
   sponsoredTxCount: 32,
+  isConnected: true,
+  connectedProvider: 'Nimiq Hub',
 };
+
+const defaultStreak: SavingsStreakInfo = {
+  currentDays: 14,
+  longestDays: 28,
+  lastDepositDate: '2026 11 09',
+  freezesRemaining: 2,
+};
+
+const defaultCommunities: SavingsCommunity[] = [
+  {
+    id: 'comm_arsenal',
+    name: 'Arsenal Gunners Club',
+    hobbyCategory: 'football',
+    teamOrTopic: 'Arsenal',
+    memberCount: 1280,
+    totalPoolUsdt: 142500,
+    collectiveGoalTitle: 'Emirates Stadium Tour and VIP Box Fund',
+    leaderboard: [
+      { rank: 1, username: 'BukayoSaver', totalSavedUsdt: 14200, streakDays: 42, badge: 'Syndicate Leader' },
+      { rank: 2, username: 'ThierryNIM', totalSavedUsdt: 11800, streakDays: 35, badge: 'Veteran Saver' },
+      { rank: 3, username: 'NorthLondonGold', totalSavedUsdt: 9400, streakDays: 28, badge: 'Goal Hunter' },
+      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
+      { rank: 5, username: 'GunnerFaithful', totalSavedUsdt: 4200, streakDays: 12, badge: 'Discipline Master' },
+    ],
+  },
+  {
+    id: 'comm_madrid',
+    name: 'Real Madrid Madridistas',
+    hobbyCategory: 'football',
+    teamOrTopic: 'Real Madrid',
+    memberCount: 1840,
+    totalPoolUsdt: 218000,
+    collectiveGoalTitle: 'Bernabeu Champions League Trip',
+    leaderboard: [
+      { rank: 1, username: 'HalaNimiq', totalSavedUsdt: 18500, streakDays: 56, badge: 'Syndicate Leader' },
+      { rank: 2, username: 'WhiteCrown', totalSavedUsdt: 15200, streakDays: 41, badge: 'Veteran Saver' },
+      { rank: 3, username: 'ModricMagic', totalSavedUsdt: 12100, streakDays: 32, badge: 'Goal Hunter' },
+      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
+      { rank: 5, username: 'CibelesDream', totalSavedUsdt: 4900, streakDays: 19, badge: 'Discipline Master' },
+    ],
+  },
+  {
+    id: 'comm_warriors',
+    name: 'Golden State Warriors Hub',
+    hobbyCategory: 'basketball',
+    teamOrTopic: 'Golden State',
+    memberCount: 940,
+    totalPoolUsdt: 98000,
+    collectiveGoalTitle: 'Chase Center Courtside Season Pass',
+    leaderboard: [
+      { rank: 1, username: 'CurrySplash', totalSavedUsdt: 16400, streakDays: 48, badge: 'Syndicate Leader' },
+      { rank: 2, username: 'BayAreaVault', totalSavedUsdt: 10900, streakDays: 31, badge: 'Veteran Saver' },
+      { rank: 3, username: 'DubNation99', totalSavedUsdt: 7800, streakDays: 22, badge: 'Goal Hunter' },
+      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
+      { rank: 5, username: 'KlayCoast', totalSavedUsdt: 3600, streakDays: 10, badge: 'Discipline Master' },
+    ],
+  },
+  {
+    id: 'comm_gaming',
+    name: 'Squad Raid Gamers',
+    hobbyCategory: 'gaming',
+    teamOrTopic: 'Squad Raid',
+    memberCount: 720,
+    totalPoolUsdt: 64000,
+    collectiveGoalTitle: 'Custom High End Battlestations Fund',
+    leaderboard: [
+      { rank: 1, username: 'RaidBossLoot', totalSavedUsdt: 12800, streakDays: 39, badge: 'Syndicate Leader' },
+      { rank: 2, username: 'PixelKnight', totalSavedUsdt: 9200, streakDays: 27, badge: 'Veteran Saver' },
+      { rank: 3, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
+      { rank: 4, username: 'MythicDrop', totalSavedUsdt: 4400, streakDays: 15, badge: 'Goal Hunter' },
+      { rank: 5, username: 'RespawnDiscipline', totalSavedUsdt: 2900, streakDays: 8, badge: 'Discipline Master' },
+    ],
+  },
+  {
+    id: 'comm_nimiq',
+    name: 'Nimiq PoS Stakers Circle',
+    hobbyCategory: 'crypto',
+    teamOrTopic: 'Nimiq PoS',
+    memberCount: 2450,
+    totalPoolUsdt: 480000,
+    collectiveGoalTitle: 'Validator Node Staking Compound Pool',
+    leaderboard: [
+      { rank: 1, username: 'GenesisValidator', totalSavedUsdt: 35000, streakDays: 90, badge: 'Syndicate Leader' },
+      { rank: 2, username: 'AlbatrossNode', totalSavedUsdt: 28400, streakDays: 74, badge: 'Veteran Saver' },
+      { rank: 3, username: 'PoSHarvester', totalSavedUsdt: 19800, streakDays: 52, badge: 'Goal Hunter' },
+      { rank: 4, username: 'You', totalSavedUsdt: 5800, streakDays: 14, isCurrentUser: true, badge: 'Active Striker' },
+      { rank: 5, username: 'NIMHolder', totalSavedUsdt: 14200, streakDays: 38, badge: 'Discipline Master' },
+    ],
+  },
+];
 
 const SavingsContext = createContext<SavingsContextType | undefined>(undefined);
 
@@ -233,14 +338,29 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((g: any) => ({
-            ...g,
-            currency: g.currency === 'NIM' ? 'NIM' : 'USDT',
-            category: g.category || 'house',
-            currentAmount: typeof g.currentAmount === 'number' ? g.currentAmount : 0,
-            targetAmount: typeof g.targetAmount === 'number' && g.targetAmount > 0 ? g.targetAmount : 1000,
-            milestones: Array.isArray(g.milestones) ? g.milestones : [],
-          }));
+          // Check if user still had the old dummy 25000 house price; if so, upgrade to realistic price
+          return parsed.map((g: any) => {
+            let targetAmount = typeof g.targetAmount === 'number' && g.targetAmount > 0 ? g.targetAmount : 1000;
+            let currentAmount = typeof g.currentAmount === 'number' ? g.currentAmount : 0;
+            if (g.id === 'goal_house' && targetAmount === 25000) {
+              targetAmount = 350000;
+              currentAmount = 145000;
+            } else if (g.id === 'goal_car' && targetAmount === 18000) {
+              targetAmount = 65000;
+              currentAmount = 24500;
+            } else if (g.id === 'goal_trip' && targetAmount === 4500) {
+              targetAmount = 6500;
+              currentAmount = 3900;
+            }
+            return {
+              ...g,
+              currency: g.currency === 'NIM' ? 'NIM' : 'USDT',
+              category: g.category || 'house',
+              targetAmount,
+              currentAmount,
+              milestones: Array.isArray(g.milestones) ? g.milestones : [],
+            };
+          });
         }
       } catch {
         return defaultGoals;
@@ -312,12 +432,26 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
             typeof parsed.sponsoredTxCount === 'number'
               ? parsed.sponsoredTxCount
               : defaultWallet.sponsoredTxCount,
+          isConnected: parsed.isConnected ?? true,
+          connectedProvider: parsed.connectedProvider ?? 'Nimiq Hub',
         };
       } catch {
         return defaultWallet;
       }
     }
     return defaultWallet;
+  });
+
+  const [streak, setStreak] = useState<SavingsStreakInfo>(() => {
+    const saved = localStorage.getItem('nimisave_streak');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return defaultStreak;
+      }
+    }
+    return defaultStreak;
   });
 
   const [selectedHobby, setSelectedHobby] = useState<HobbyCategory>(() => {
@@ -327,6 +461,12 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedTopic, setSelectedTopic] = useState<string>(() => {
     return localStorage.getItem('nimisave_topic') || 'Arsenal';
   });
+
+  const [isWalletConnected, setIsWalletConnected] = useState<boolean>(true);
+  const [walletProvider, setWalletProvider] = useState<string | null>('Nimiq Hub');
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
+  const openConnectModal = () => setIsConnectModalOpen(true);
+  const closeConnectModal = () => setIsConnectModalOpen(false);
 
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState<boolean>(false);
   const openCreateGoal = () => setIsCreateGoalOpen(true);
@@ -348,13 +488,37 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('nimisave_wallet', JSON.stringify(wallet));
   }, [wallet]);
 
+  useEffect(() => {
+    localStorage.setItem('nimisave_streak', JSON.stringify(streak));
+  }, [streak]);
+
+  const connectWallet = async (provider: string) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setIsWalletConnected(true);
+    setWalletProvider(provider);
+    setWallet((prev) => ({
+      ...prev,
+      isConnected: true,
+      connectedProvider: provider,
+    }));
+  };
+
+  const disconnectWallet = () => {
+    setIsWalletConnected(false);
+    setWalletProvider(null);
+    setWallet((prev) => ({
+      ...prev,
+      isConnected: false,
+      connectedProvider: undefined,
+    }));
+  };
+
   const setHobbyPreference = (hobby: HobbyCategory, topic: string) => {
     setSelectedHobby(hobby);
     setSelectedTopic(topic);
     localStorage.setItem('nimisave_hobby', hobby);
     localStorage.setItem('nimisave_topic', topic);
 
-    // Update active prompts to reflect this topic
     setPrompts((prev) =>
       prev.map((p) => {
         if (p.hobbyCategory === hobby) {
@@ -377,7 +541,25 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
+  const activeCommunity =
+    defaultCommunities.find((c) => c.teamOrTopic.toLowerCase() === selectedTopic.toLowerCase()) ||
+    defaultCommunities[0];
+
   const activeGoal = goals.find((g) => g.id === activeGoalId) || goals[0] || null;
+
+  const extendStreak = () => {
+    const now = new Date();
+    const dateStr = `${now.getFullYear()} ${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}`;
+    setStreak((prev) => {
+      const nextDays = prev.currentDays + 1;
+      return {
+        ...prev,
+        currentDays: nextDays,
+        longestDays: Math.max(prev.longestDays, nextDays),
+        lastDepositDate: dateStr,
+      };
+    });
+  };
 
   const deposit = async (
     goalId: string,
@@ -391,7 +573,6 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const usedCurrency: Currency = depositCurrency || targetGoal.currency;
     const settlement = await simulateNimiqSettlement(wallet.nimiqAddress, amount, usedCurrency);
 
-    // Calculate effective added amount in the goal's native currency
     let addedAmount = amount;
     if (usedCurrency !== targetGoal.currency) {
       if (usedCurrency === 'NIM' && targetGoal.currency === 'USDT') {
@@ -432,6 +613,8 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       ...prev,
       sponsoredTxCount: prev.sponsoredTxCount + 1,
     }));
+
+    extendStreak();
 
     return true;
   };
@@ -536,32 +719,32 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let milestones: GoalMilestone[] = [];
     if (goalData.category === 'house') {
       milestones = [
-        { id: 'm1', name: 'Foundation Slab', description: 'Excavation and ground concrete', thresholdPercent: 20 },
-        { id: 'm2', name: 'Framing Pillars', description: 'Wood beams and core columns', thresholdPercent: 40 },
-        { id: 'm3', name: 'Enclosed Walls', description: 'Outer walls and entrance', thresholdPercent: 60 },
-        { id: 'm4', name: 'Pitched Roof', description: 'Roof structure and chimney', thresholdPercent: 80 },
-        { id: 'm5', name: 'Glass and Garden', description: 'Glazing porch and landscaping', thresholdPercent: 100 },
+        { id: 'm1', name: 'Foundation and Site Prep', description: 'Excavation ground grading and foundation slab', thresholdPercent: 20 },
+        { id: 'm2', name: 'Concrete Framing and Steel', description: 'Reinforced pillars core columns and floor beams', thresholdPercent: 40 },
+        { id: 'm3', name: 'Weatherproof Shell and Walls', description: 'Exterior insulated walls and secure entrance portal', thresholdPercent: 60 },
+        { id: 'm4', name: 'Architectural Roof and Glazing', description: 'Pitched modern roof skylights and panoramic glass', thresholdPercent: 80 },
+        { id: 'm5', name: 'Interior Finishes and Garden', description: 'Custom carpentry terrace and landscaping', thresholdPercent: 100 },
       ];
     } else if (goalData.category === 'car') {
       milestones = [
-        { id: 'c1', name: 'Chassis Platform', description: 'Underbody floor and battery pack', thresholdPercent: 25 },
-        { id: 'c2', name: 'Sport Cockpit', description: 'Dual racing seats and dash display', thresholdPercent: 50 },
-        { id: 'c3', name: 'Aerodynamic Shell', description: 'Metallic bodywork and rear spoiler', thresholdPercent: 75 },
-        { id: 'c4', name: 'Wheels and LED Lights', description: 'Alloy wheels and full lighting array', thresholdPercent: 100 },
+        { id: 'c1', name: 'Structural Chassis and Core', description: 'Underbody aero floor and high capacity battery pack', thresholdPercent: 25 },
+        { id: 'c2', name: 'Sport Cockpit and Dash', description: 'Dual racing bucket seats and heads up display', thresholdPercent: 50 },
+        { id: 'c3', name: 'Aerodynamic Body Shell', description: 'Metallic bodywork rear diffuser and active spoiler', thresholdPercent: 75 },
+        { id: 'c4', name: 'Alloy Wheels and LED Lighting', description: 'Forged lightweight wheels and full LED light array', thresholdPercent: 100 },
       ];
     } else if (goalData.category === 'trip') {
       milestones = [
-        { id: 't1', name: 'Roundtrip Flights', description: 'Long haul flight tickets reserved', thresholdPercent: 25 },
-        { id: 't2', name: 'Lodging Stays', description: 'Scenic accommodations booked', thresholdPercent: 50 },
-        { id: 't3', name: 'Transit Passes', description: 'High speed transfers and travel passes', thresholdPercent: 75 },
-        { id: 't4', name: 'Excursions and Dining', description: 'Full cultural travel itinerary covered', thresholdPercent: 100 },
+        { id: 't1', name: 'Roundtrip Flights', description: 'Direct international flight tickets reserved', thresholdPercent: 25 },
+        { id: 't2', name: 'Ryokan and Boutique Stays', description: 'Traditional hot spring inn and boutique city hotel', thresholdPercent: 50 },
+        { id: 't3', name: 'Shinkansen Rail Passes', description: 'High speed bullet train tickets and regional transit', thresholdPercent: 75 },
+        { id: 't4', name: 'Culinary and Excursions', description: 'Full cultural travel itinerary and guided tours covered', thresholdPercent: 100 },
       ];
     } else {
       milestones = [
-        { id: 'v1', name: 'Reinforced Outer Casing', description: 'Heavy vault structural enclosure', thresholdPercent: 25 },
-        { id: 'v2', name: 'Steel Door and Dial', description: 'Rotary dial and bolt locking system', thresholdPercent: 50 },
-        { id: 'v3', name: 'Internal Gold Stacks', description: 'Physical gold bullion and reserve tokens', thresholdPercent: 75 },
-        { id: 'v4', name: 'Open Treasure Chest', description: 'Compounding perpetual safety cushion', thresholdPercent: 100 },
+        { id: 'v1', name: 'Reinforced Outer Casing', description: 'Heavy vault structural enclosure and armor plating', thresholdPercent: 25 },
+        { id: 'v2', name: 'Steel Door and Dial', description: 'Rotary combination wheel and deadbolt locking system', thresholdPercent: 50 },
+        { id: 'v3', name: 'Internal Gold Stacks', description: 'Physical gold bullion and reserve settlement tokens', thresholdPercent: 75 },
+        { id: 'v4', name: 'Open Treasure Chest', description: 'Compounding perpetual safety cushion with zero lockup', thresholdPercent: 100 },
       ];
     }
 
@@ -589,6 +772,17 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         selectedHobby,
         selectedTopic,
         setHobbyPreference,
+        streak,
+        communities: defaultCommunities,
+        activeCommunity,
+        isWalletConnected,
+        walletProvider,
+        connectWallet,
+        disconnectWallet,
+        isConnectModalOpen,
+        setIsConnectModalOpen,
+        openConnectModal,
+        closeConnectModal,
         deposit,
         withdraw,
         acceptPrompt,

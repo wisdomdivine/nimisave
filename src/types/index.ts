@@ -62,4 +62,33 @@ export interface WalletInfo {
   nimPriceUsd: number;
   freeEmergencyWithdrawalsRemaining: number;
   sponsoredTxCount: number;
+  isConnected?: boolean;
+  connectedProvider?: string;
+}
+
+export interface SavingsStreakInfo {
+  currentDays: number;
+  longestDays: number;
+  lastDepositDate: string;
+  freezesRemaining: number;
+}
+
+export interface CommunityLeaderboardEntry {
+  rank: number;
+  username: string;
+  totalSavedUsdt: number;
+  streakDays: number;
+  isCurrentUser?: boolean;
+  badge: string;
+}
+
+export interface SavingsCommunity {
+  id: string;
+  name: string;
+  hobbyCategory: HobbyCategory;
+  teamOrTopic: string;
+  memberCount: number;
+  totalPoolUsdt: number;
+  collectiveGoalTitle: string;
+  leaderboard: CommunityLeaderboardEntry[];
 }

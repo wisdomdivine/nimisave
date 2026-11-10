@@ -26,9 +26,9 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
   const [goalType, setGoalType] = useState<GoalType>('target');
   const [category, setCategory] = useState<GoalCategory>('house');
   const [currency, setCurrency] = useState<Currency>('USDT');
-  const [targetAmountStr, setTargetAmountStr] = useState('10000');
-  const [initialDepositStr, setInitialDepositStr] = useState('100');
-  const [deadlineMonthsStr, setDeadlineMonthsStr] = useState('12');
+  const [targetAmountStr, setTargetAmountStr] = useState('350000');
+  const [initialDepositStr, setInitialDepositStr] = useState('2500');
+  const [deadlineMonthsStr, setDeadlineMonthsStr] = useState('36');
 
   const categories: {
     key: GoalCategory;
@@ -62,15 +62,38 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
     },
   ];
 
+  const getRealisticTarget = (cat: GoalCategory, cur: Currency): { target: string; initial: string } => {
+    if (cur === 'NIM') {
+      switch (cat) {
+        case 'house':
+          return { target: '100000000', initial: '700000' };
+        case 'car':
+          return { target: '18500000', initial: '250000' };
+        case 'trip':
+          return { target: '1850000', initial: '70000' };
+        case 'emergency':
+        default:
+          return { target: '2500000', initial: '50000' };
+      }
+    }
+    switch (cat) {
+      case 'house':
+        return { target: '350000', initial: '2500' };
+      case 'car':
+        return { target: '65000', initial: '1000' };
+      case 'trip':
+        return { target: '6500', initial: '250' };
+      case 'emergency':
+      default:
+        return { target: '15000', initial: '500' };
+    }
+  };
+
   const handleCurrencyChange = (newCur: Currency) => {
     setCurrency(newCur);
-    if (newCur === 'NIM') {
-      setTargetAmountStr('2500000');
-      setInitialDepositStr('25000');
-    } else {
-      setTargetAmountStr('10000');
-      setInitialDepositStr('100');
-    }
+    const defaults = getRealisticTarget(category, newCur);
+    setTargetAmountStr(defaults.target);
+    setInitialDepositStr(defaults.initial);
   };
 
   const handleCategoryChange = (newCat: GoalCategory) => {
@@ -78,6 +101,9 @@ export const CreateGoalModal: React.FC<CreateGoalModalProps> = ({ isOpen, onClos
     if (newCat === 'emergency') {
       setGoalType('open_vault');
     }
+    const defaults = getRealisticTarget(newCat, currency);
+    setTargetAmountStr(defaults.target);
+    setInitialDepositStr(defaults.initial);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

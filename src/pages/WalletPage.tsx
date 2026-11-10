@@ -144,6 +144,33 @@ export const WalletPage: React.FC = () => {
         </p>
       </div>
 
+      {/* What is Nimiq Settlement explanation */}
+      <div className="bg-neutral-900 p-6 sm:p-8 rounded-2xl flex flex-col gap-4">
+        <h3 className="text-base text-neutral-100 font-medium">
+          What is Nimiq Settlement About?
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <div className="bg-neutral-950 p-4 rounded-xl flex flex-col gap-1.5">
+            <span className="text-xs text-neutral-200 font-medium">Zero Gas Cost</span>
+            <p className="text-2xs text-neutral-400 font-light leading-relaxed">
+              Nimisave relayers sponsor PoS validator fees so you never pay gas to deposit or build toward your goals.
+            </p>
+          </div>
+          <div className="bg-neutral-950 p-4 rounded-xl flex flex-col gap-1.5">
+            <span className="text-xs text-neutral-200 font-medium">Instant Micro Deposits</span>
+            <p className="text-2xs text-neutral-400 font-light leading-relaxed">
+              Save as little as ten dollars without paying the twenty dollar network fees typical of legacy networks.
+            </p>
+          </div>
+          <div className="bg-neutral-950 p-4 rounded-xl flex flex-col gap-1.5">
+            <span className="text-xs text-neutral-200 font-medium">Non Custodial Vaults</span>
+            <p className="text-2xs text-neutral-400 font-light leading-relaxed">
+              Funds are secured on chain in your dedicated wallet address. You retain complete sovereign control.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Full on chain audit log */}
       <section className="flex flex-col gap-5 sm:gap-6">
         <h3 className="text-lg text-neutral-100 font-light">
