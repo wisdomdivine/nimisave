@@ -305,7 +305,7 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-6">
-                <span className="text-neutral-400 font-mono text-2xs truncate max-w-xs hidden md:inline">
+                <span className="text-neutral-400 text-2xs truncate max-w-xs hidden md:inline">
                   {tx.txHash.slice(0, 16)}...
                 </span>
                 <span className="text-neutral-400">{tx.date}</span>

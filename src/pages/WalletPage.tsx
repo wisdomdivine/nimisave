@@ -89,7 +89,7 @@ export const WalletPage: React.FC = () => {
         </div>
 
         <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <span className="font-mono text-xs text-neutral-200 tracking-widest break-all">
+          <span className="text-xs text-neutral-200 tracking-widest break-all">
             {formatNimiqAddress(wallet.nimiqAddress)}
           </span>
           <Button variant="secondary" size="sm" onClick={handleCopy}>
@@ -126,7 +126,7 @@ export const WalletPage: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <span className="text-neutral-100 text-sm">{tx.goalTitle}</span>
                 <span className="text-neutral-400">{tx.note || tx.type}</span>
-                <span className="text-neutral-500 font-mono text-2xs break-all">
+                <span className="text-neutral-500 text-2xs break-all">
                   hash {tx.txHash}
                 </span>
               </div>
