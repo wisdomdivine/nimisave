@@ -38,3 +38,4 @@ export const Logo: React.FC<LogoProps> = ({
     </svg>
   );
 };
+
