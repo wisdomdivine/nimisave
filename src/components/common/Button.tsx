@@ -34,7 +34,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`inline-flex items-center justify-center font-light tracking-wide transition-colors rounded-xl ${sizeStyle} ${variantStyle} ${disabledStyle} ${className}`}
+      className={`inline-flex items-center justify-center tracking-wide transition-colors rounded-xl ${sizeStyle} ${variantStyle} ${disabledStyle} ${className}`}
       disabled={disabled}
       {...props}
     >

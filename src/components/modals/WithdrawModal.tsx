@@ -53,7 +53,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Withdraw from ${goal.title}`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <div className="text-xs font-light text-neutral-400">
+        <div className="text-xs text-neutral-400">
           Available in this goal box: {goal.currentAmount} dollars
         </div>
 
@@ -69,7 +69,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
         />
 
         <div className="flex flex-col gap-3">
-          <label className="text-xs font-light text-neutral-400 tracking-wider">
+          <label className="text-xs text-neutral-400 tracking-wider">
             Withdrawal category
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -80,8 +80,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
                 isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <div className="text-sm font-light">Emergency access</div>
-              <div className="text-xs font-light text-neutral-400 mt-1">
+              <div className="text-sm">Emergency access</div>
+              <div className="text-xs text-neutral-400 mt-1">
                 {wallet.freeEmergencyWithdrawalsRemaining} free emergency passes left
               </div>
             </button>
@@ -93,8 +93,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
                 !isEmergency ? 'bg-neutral-800 text-neutral-100' : 'bg-neutral-950 text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <div className="text-sm font-light">Standard early unlock</div>
-              <div className="text-xs font-light text-neutral-400 mt-1">
+              <div className="text-sm">Standard early unlock</div>
+              <div className="text-xs text-neutral-400 mt-1">
                 Two percent fee capped at fifteen dollars
               </div>
             </button>
@@ -102,29 +102,29 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose, g
         </div>
 
         <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col gap-2">
-          <div className="flex justify-between text-xs font-light text-neutral-400">
+          <div className="flex justify-between text-xs text-neutral-400">
             <span>Requested amount</span>
             <span className="text-neutral-200">{details.grossAmount} dollars</span>
           </div>
-          <div className="flex justify-between text-xs font-light text-neutral-400">
+          <div className="flex justify-between text-xs text-neutral-400">
             <span>Administrative deduction</span>
             <span className="text-neutral-200">
               {details.fee === 0 ? 'Zero dollars' : `${details.fee} dollars`}
             </span>
           </div>
-          <div className="flex justify-between text-xs font-light text-neutral-400">
+          <div className="flex justify-between text-xs text-neutral-400">
             <span>Net funds returned to you</span>
             <span className="text-neutral-100 text-sm">
               {details.netAmount} dollars
             </span>
           </div>
-          <p className="text-xs font-light text-neutral-500 mt-2">
+          <p className="text-xs text-neutral-500 mt-2">
             {details.explanation}
           </p>
         </div>
 
         {message && (
-          <div className="p-4 bg-neutral-800 rounded-xl text-xs font-light text-neutral-200 text-center">
+          <div className="p-4 bg-neutral-800 rounded-xl text-xs text-neutral-200 text-center">
             {message}
           </div>
         )}

@@ -14,16 +14,16 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label className="text-xs font-light text-neutral-400 tracking-wider">
+        <label className="text-xs text-neutral-400 tracking-wider">
           {label}
         </label>
       )}
       <input
-        className={`w-full bg-neutral-900 text-neutral-100 placeholder-neutral-600 px-4 py-3 font-light text-sm outline-none transition-colors rounded-xl focus:bg-neutral-850 ${className}`}
+        className={`w-full bg-neutral-900 text-neutral-100 placeholder-neutral-600 px-4 py-3 text-sm outline-none transition-colors rounded-xl focus:bg-neutral-850 ${className}`}
         {...props}
       />
       {error && (
-        <span className="text-xs font-light text-red-400">
+        <span className="text-xs text-red-400">
           {error}
         </span>
       )}

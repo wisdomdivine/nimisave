@@ -62,7 +62,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
     <Modal isOpen={isOpen} onClose={onClose} title={`Contribute to ${goal.title}`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-light text-neutral-400 tracking-wider">
+          <span className="text-xs text-neutral-400 tracking-wider">
             Quick selection
           </span>
           <div className="grid grid-cols-5 gap-2">
@@ -71,7 +71,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
                 key={val}
                 type="button"
                 onClick={() => handleQuickSelect(val)}
-                className={`py-3 text-xs font-light transition-colors rounded-xl cursor-pointer ${
+                className={`py-3 text-xs transition-colors rounded-xl cursor-pointer ${
                   amount === val && customAmount === ''
                     ? 'bg-neutral-100 text-neutral-950'
                     : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
@@ -94,15 +94,15 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
         />
 
         <div className="bg-neutral-950 p-6 rounded-2xl flex flex-col gap-2">
-          <div className="flex justify-between text-xs font-light text-neutral-400">
+          <div className="flex justify-between text-xs text-neutral-400">
             <span>Settlement network</span>
             <span className="text-neutral-200">Nimiq PoS micro settlement</span>
           </div>
-          <div className="flex justify-between text-xs font-light text-neutral-400">
+          <div className="flex justify-between text-xs text-neutral-400">
             <span>Network gas fee</span>
             <span className="text-neutral-200">0.00 dollars sponsored</span>
           </div>
-          <div className="flex justify-between text-xs font-light text-neutral-400">
+          <div className="flex justify-between text-xs text-neutral-400">
             <span>Progress after deposit</span>
             <span className="text-neutral-200">
               {Math.min(100, Math.round(((goal.currentAmount + amount) / goal.targetAmount) * 100))}%
@@ -111,7 +111,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, goa
         </div>
 
         {successMessage && (
-          <div className="p-4 bg-neutral-800 rounded-xl text-xs font-light text-neutral-200 text-center">
+          <div className="p-4 bg-neutral-800 rounded-xl text-xs text-neutral-200 text-center">
             {successMessage}
           </div>
         )}

@@ -2,14 +2,6 @@
 
 @font-face {
   font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Light.otf") format("opentype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Neue Montreal";
   src: url("/fonts/NeueMontreal-Regular.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
@@ -20,6 +12,22 @@
   font-family: "Neue Montreal";
   src: url("/fonts/NeueMontreal-Medium.otf") format("opentype");
   font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Bold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Bold.otf") format("opentype");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -40,7 +48,7 @@
   html,
   body {
     font-family: "Neue Montreal", -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-weight: 400;
+    font-weight: 500;
     background-color: #0a0a0a;
     color: #f3f4f6;
     margin: 0;
@@ -59,14 +67,19 @@
   pre,
   span,
   p,
+  div {
+    font-family: "Neue Montreal", -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-weight: 500;
+  }
+
   h1,
   h2,
   h3,
   h4,
   h5,
-  h6,
-  div {
+  h6 {
     font-family: "Neue Montreal", -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-weight: 600;
   }
 
   button,
