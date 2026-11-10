@@ -14,6 +14,10 @@ interface SavingsContextType {
   acceptPrompt: (promptId: string, goalId: string) => Promise<boolean>;
   dismissPrompt: (promptId: string) => void;
   addGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'milestones'>) => void;
+  isCreateGoalOpen: boolean;
+  setIsCreateGoalOpen: (open: boolean) => void;
+  openCreateGoal: () => void;
+  closeCreateGoal: () => void;
 }
 
 const defaultGoals: SavingsGoal[] = [
@@ -177,6 +181,10 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem('nimisave_wallet') || localStorage.getItem('gammy_wallet');
     return saved ? JSON.parse(saved) : defaultWallet;
   });
+
+  const [isCreateGoalOpen, setIsCreateGoalOpen] = useState<boolean>(false);
+  const openCreateGoal = () => setIsCreateGoalOpen(true);
+  const closeCreateGoal = () => setIsCreateGoalOpen(false);
 
   useEffect(() => {
     localStorage.setItem('nimisave_goals', JSON.stringify(goals));
@@ -343,6 +351,7 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setGoals((prev) => [...prev, newGoal]);
     setActiveGoalId(newId);
+    setIsCreateGoalOpen(false);
   };
 
   return (
@@ -359,6 +368,10 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         acceptPrompt,
         dismissPrompt,
         addGoal,
+        isCreateGoalOpen,
+        setIsCreateGoalOpen,
+        openCreateGoal,
+        closeCreateGoal,
       }}
     >
       {children}

@@ -2,8 +2,12 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
+import { CreateGoalModal } from '../modals/CreateGoalModal';
+import { useSavings } from '../../context/SavingsContext';
 
 export const Layout: React.FC = () => {
+  const { isCreateGoalOpen, closeCreateGoal } = useSavings();
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-200 flex flex-col selection:bg-neutral-800 selection:text-neutral-100">
       <Header />
@@ -11,6 +15,7 @@ export const Layout: React.FC = () => {
         <Outlet />
       </main>
       <BottomNav />
+      <CreateGoalModal isOpen={isCreateGoalOpen} onClose={closeCreateGoal} />
     </div>
   );
 };

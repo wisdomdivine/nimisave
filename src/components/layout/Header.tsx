@@ -5,7 +5,7 @@ import { Logo } from '../common/Logo';
 import { PlusSignIcon } from 'hugeicons-react';
 
 export const Header: React.FC = () => {
-  const { wallet } = useSavings();
+  const { wallet, openCreateGoal } = useSavings();
 
   return (
     <header className="w-full bg-neutral-950 py-5 sm:py-6 px-4 sm:px-8 lg:px-12 flex items-center justify-between">
@@ -24,13 +24,14 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        <NavLink
-          to="/create"
+        <button
+          type="button"
+          onClick={openCreateGoal}
           className="flex items-center gap-2 text-xs bg-neutral-100 text-neutral-950 hover:bg-neutral-200 px-3.5 sm:px-4 py-2 rounded-xl cursor-pointer transition-colors"
         >
           <PlusSignIcon size={14} />
           <span>Create Goal</span>
-        </NavLink>
+        </button>
       </div>
     </header>
   );

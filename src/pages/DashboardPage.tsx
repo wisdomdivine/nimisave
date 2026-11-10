@@ -19,6 +19,7 @@ export const DashboardPage: React.FC = () => {
     dismissPrompt,
     wallet,
     transactions,
+    openCreateGoal,
   } = useSavings();
 
   const [isDepositOpen, setIsDepositOpen] = useState(false);
@@ -241,13 +242,14 @@ export const DashboardPage: React.FC = () => {
           <h3 className="text-lg text-neutral-100">
             Your Savings Boxes
           </h3>
-          <Link
-            to="/create"
+          <button
+            type="button"
+            onClick={openCreateGoal}
             className="flex items-center gap-2 text-xs bg-neutral-100 text-neutral-950 hover:bg-neutral-200 px-3.5 py-1.5 sm:py-2 rounded-xl transition-colors cursor-pointer"
           >
             <PlusSignIcon size={14} />
             <span>New Box</span>
-          </Link>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
