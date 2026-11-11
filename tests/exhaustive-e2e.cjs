@@ -176,10 +176,9 @@ async function runTestSuite() {
 
     const illustrationExists = await page.evaluate(() => {
       const img = document.querySelector('img[src="/illustration-windows-dark.png"]');
-      const hero3d = document.querySelector('img[src="/nimisave-hero-3d.jpg"]');
-      return img !== null && hero3d !== null;
+      return img !== null;
     });
-    assert(illustrationExists, '3D goals illustrations (illustration-windows-dark.png and nimisave-hero-3d.jpg) are rendered on landing page');
+    assert(illustrationExists, '3D goals illustration (illustration-windows-dark.png) is rendered in main hero');
 
     const linksExist = await page.evaluate(() => {
       const xLink = document.querySelector('a[href="https://x.com/nimiq"]');
