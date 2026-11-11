@@ -7,14 +7,17 @@ export const BottomNav: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/dashboard', label: 'Overview', icon: Home01Icon },
-    { path: '/prompts', label: 'Hobby Prompts', icon: CompassIcon },
-    { path: '/communities', label: 'Communities', icon: Group01Icon },
-    { path: '/wallet', label: 'Settlement', icon: Wallet01Icon },
+    { path: '/dashboard', label: 'Overview', shortLabel: 'Overview', icon: Home01Icon },
+    { path: '/prompts', label: 'Hobby Prompts', shortLabel: 'Prompts', icon: CompassIcon },
+    { path: '/communities', label: 'Communities', shortLabel: 'Communities', icon: Group01Icon },
+    { path: '/wallet', label: 'Settlement', shortLabel: 'Settlement', icon: Wallet01Icon },
   ];
 
   return (
-    <nav className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900/95 backdrop-blur-md p-1 sm:p-2 rounded-2xl flex items-center gap-0.5 sm:gap-1 max-w-[calc(100vw-1rem)] shadow-none">
+    <nav
+      aria-label="Bottom Navigation"
+      className="fixed bottom-2.5 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900/95 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl flex items-center justify-center gap-0.5 sm:gap-1 max-w-[calc(100vw-1rem)] sm:max-w-fit shadow-none select-none"
+    >
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         const IconComponent = item.icon;
@@ -23,7 +26,7 @@ export const BottomNav: React.FC = () => {
           <NavLink
             key={item.path}
             to={item.path}
-            className="relative px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-xl text-2xs sm:text-sm flex items-center gap-1 sm:gap-2 cursor-pointer transition-colors whitespace-nowrap"
+            className="relative px-2 min-[380px]:px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-xl text-[11px] min-[380px]:text-xs sm:text-sm flex items-center gap-1 sm:gap-2 cursor-pointer transition-colors whitespace-nowrap flex-shrink-0"
           >
             {isActive && (
               <motion.div
@@ -37,8 +40,9 @@ export const BottomNav: React.FC = () => {
                 isActive ? 'text-neutral-100 font-medium' : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <IconComponent size={15} />
-              <span>{item.label}</span>
+              <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">{item.label}</span>
+              <span className="sm:hidden">{item.shortLabel}</span>
             </span>
           </NavLink>
         );

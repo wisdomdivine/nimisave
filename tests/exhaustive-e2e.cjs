@@ -176,9 +176,10 @@ async function runTestSuite() {
 
     const illustrationExists = await page.evaluate(() => {
       const img = document.querySelector('img[src="/illustration-windows-dark.png"]');
-      return img !== null;
+      const hero3d = document.querySelector('img[src="/nimisave-hero-3d.jpg"]');
+      return img !== null && hero3d !== null;
     });
-    assert(illustrationExists, '3D goals illustration (illustration-windows-dark.png) is rendered in main hero');
+    assert(illustrationExists, '3D goals illustrations (illustration-windows-dark.png and nimisave-hero-3d.jpg) are rendered on landing page');
 
     const linksExist = await page.evaluate(() => {
       const xLink = document.querySelector('a[href="https://x.com/nimiq"]');
@@ -556,6 +557,30 @@ async function runTestSuite() {
       return document.documentElement.scrollWidth > window.innerWidth;
     });
     assert(!mobilePromptsScroll, 'Mobile Prompts Page has zero horizontal scroll overflow');
+
+    // Verify BottomNav Settlement button is 100% visible and not cut off on mobile
+    const bottomNavCheck = await page.evaluate(() => {
+      const nav = document.querySelector('nav[aria-label="Bottom Navigation"]');
+      if (!nav) return { found: false };
+      const links = Array.from(nav.querySelectorAll('a')).map(a => {
+        const r = a.getBoundingClientRect();
+        return {
+          text: a.innerText.trim(),
+          right: Math.round(r.right),
+          width: Math.round(r.width)
+        };
+      });
+      const settlement = links.find(l => l.text.includes('Settlement') || l.text.includes('Wallet'));
+      return {
+        found: true,
+        links,
+        isSettlementCutOff: settlement ? settlement.right > window.innerWidth : true,
+        settlementRight: settlement ? settlement.right : 0
+      };
+    });
+    if (bottomNavCheck.found) {
+      assert(!bottomNavCheck.isSettlementCutOff, `Mobile BottomNav: Settlement item is fully visible and not cut off (right: ${bottomNavCheck.settlementRight}px <= ${390}px)`);
+    }
   } catch (err) {
     assert(false, `Mobile viewport test error: ${err.message}`);
   }

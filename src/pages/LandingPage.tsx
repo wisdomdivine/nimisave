@@ -33,7 +33,7 @@ export const LandingPage: React.FC = () => {
   }, [wallet.nimiqAddress]);
 
   return (
-    <div className="h-screen min-h-screen max-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col justify-between overflow-hidden selection:bg-neutral-800 selection:text-neutral-100 px-4 py-6 sm:py-8">
+    <div className="min-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col justify-between selection:bg-neutral-800 selection:text-neutral-100 px-4 py-6 sm:py-8 overflow-y-auto">
       {/* Floating Header with Nimisave Logo and Connect Wallet button */}
       <header className="w-full flex justify-center z-30 flex-shrink-0">
         <motion.div
@@ -178,8 +178,54 @@ export const LandingPage: React.FC = () => {
         </motion.div>
       </main>
 
-      {/* Clean bottom spacing to preserve perfect 100vh centering */}
-      <div className="h-2 flex-shrink-0" />
+      {/* Visual Feature Showcase: 3D Goal Assembly */}
+      <section className="w-full max-w-4xl mx-auto px-4 py-10 sm:py-16 flex flex-col items-center gap-6">
+        <div className="w-full rounded-3xl bg-neutral-900 flex flex-col items-center p-5 sm:p-10">
+          <img
+            src="/nimisave-hero-3d.jpg"
+            alt="Physical goals assembly in real time 3D"
+            className="w-full max-w-2xl rounded-2xl object-cover select-none"
+          />
+          <div className="pt-6 sm:pt-8 flex flex-col items-center text-center gap-2 max-w-lg">
+            <h2 className="text-xl sm:text-2xl font-light text-neutral-100">
+              Save play and build in real time 3D
+            </h2>
+            <p className="text-xs sm:text-sm font-light text-neutral-400 leading-relaxed">
+              Every voluntary deposit turns into physical building parts for your dream goals. Watch your house or car assemble step by step with zero gas costs.
+            </p>
+          </div>
+        </div>
+
+        {/* Feature Highlights: Streaks & Leaderboards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+          <div className="p-6 bg-neutral-900 rounded-3xl flex flex-col gap-2.5">
+            <span className="text-xs text-neutral-400 font-light">
+              Consistency Streaks
+            </span>
+            <h3 className="text-base text-neutral-100 font-medium">
+              Daily habit rewards with freeze passes
+            </h3>
+            <p className="text-xs text-neutral-400 font-light leading-relaxed">
+              Build saving discipline every single day without feeling pressured. Protect your hard earned streak with emergency passes whenever life happens.
+            </p>
+          </div>
+
+          <div className="p-6 bg-neutral-900 rounded-3xl flex flex-col gap-2.5">
+            <span className="text-xs text-neutral-400 font-light">
+              Supporter Clubs
+            </span>
+            <h3 className="text-base text-neutral-100 font-medium">
+              Shared interest pools and leaderboards
+            </h3>
+            <p className="text-xs text-neutral-400 font-light leading-relaxed">
+              Join fellow club supporters gamers or crypto savers. Climb collective leaderboards based on consistency and personal milestones rather than wealth.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Clean bottom spacing */}
+      <div className="h-6 flex-shrink-0" />
     </div>
   );
 };
