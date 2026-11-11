@@ -131,6 +131,40 @@ export async function connectLiveEvmWallet(): Promise<LiveWalletSession> {
 }
 
 /**
+ * Check if running inside Nimiq Pay mobile app webview
+ */
+export function isInsideNimiqPayApp(): boolean {
+  if (typeof window === 'undefined') return false;
+  return Boolean((window as any).nimiqPay || (window as any).nimiq);
+}
+
+/**
+ * Generate Nimiq Pay mobile deep link to launch app
+ */
+export function getNimiqPayDeepLink(): string {
+  if (typeof window === 'undefined') return 'nimiqpay://miniapp?url=https://nimisave.pages.dev';
+  return `nimiqpay://miniapp?url=${encodeURIComponent(window.location.origin)}`;
+}
+
+/**
+ * Connect using Nimiq Pay in app Mini App SDK
+ */
+export async function connectLiveNimiqPayMiniApp(): Promise<LiveWalletSession> {
+  try {
+    const { init: initNimiqSdk } = await import('@nimiq/mini-app-sdk');
+    const provider = await initNimiqSdk({ timeout: 4000 });
+    const accounts = await provider.listAccounts();
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No Nimiq account available in Nimiq Pay app');
+    }
+    const rawAddress = accounts[0];
+    return connectLiveNimiqAddress(rawAddress);
+  } catch (err: any) {
+    throw new Error(err.message || 'Unable to connect with Nimiq Pay mini app');
+  }
+}
+
+/**
  * Connect using a Nimiq address (e.g. copied from Nimiq Pay mobile app)
  */
 export async function connectLiveNimiqAddress(rawAddress: string): Promise<LiveWalletSession> {

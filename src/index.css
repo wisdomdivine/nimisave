@@ -67,14 +67,14 @@
   }
 }
 
-/* Light Theme Overrides (Warm Ivory Canvas & Soft Pastel Accents from Screenshot 2 & 3) */
+/* Light Theme Overrides (White and Piggy Purple Palette) */
 html.light body {
-  background-color: #f6efe9 !important;
-  color: #171717 !important;
+  background-color: #fbf9fe !important;
+  color: #1a0f30 !important;
 }
 
 html.light .bg-neutral-950 {
-  background-color: #f6efe9 !important;
+  background-color: #fbf9fe !important;
 }
 
 html.light .bg-neutral-900 {
@@ -82,103 +82,103 @@ html.light .bg-neutral-900 {
 }
 
 html.light .bg-neutral-850 {
-  background-color: #eee7e0 !important;
+  background-color: #f3ecfc !important;
 }
 
 html.light .bg-neutral-800 {
-  background-color: #e8e0d6 !important;
+  background-color: #ece0f8 !important;
 }
 
 html.light .bg-neutral-750 {
-  background-color: #ded6cc !important;
+  background-color: #e1d0f4 !important;
 }
 
 html.light .bg-neutral-700 {
-  background-color: #d1c7bc !important;
+  background-color: #d1b8ec !important;
 }
 
 html.light .hover\:bg-neutral-850:hover {
-  background-color: #eee7e0 !important;
+  background-color: #ede2fa !important;
 }
 
 html.light .hover\:bg-neutral-800:hover {
-  background-color: #e8e0d6 !important;
+  background-color: #e5d5f6 !important;
 }
 
 html.light .hover\:bg-neutral-750:hover {
-  background-color: #ded6cc !important;
+  background-color: #d8c3f0 !important;
 }
 
 html.light .hover\:bg-neutral-700:hover {
-  background-color: #d1c7bc !important;
+  background-color: #c7a9e7 !important;
 }
 
 html.light .hover\:bg-neutral-900:hover {
-  background-color: #f8f3ed !important;
+  background-color: #fdfcff !important;
 }
 
 html.light .text-neutral-100 {
-  color: #171717 !important;
+  color: #1a0f30 !important;
 }
 
 html.light .text-neutral-200 {
-  color: #27272a !important;
+  color: #2d1c4d !important;
 }
 
 html.light .text-neutral-300 {
-  color: #3f3f46 !important;
+  color: #46336a !important;
 }
 
 html.light .text-neutral-400 {
-  color: #52525b !important;
+  color: #6c598f !important;
 }
 
 html.light .text-neutral-500 {
-  color: #71717a !important;
+  color: #907dae !important;
 }
 
 html.light .hover\:text-neutral-100:hover {
-  color: #171717 !important;
+  color: #1a0f30 !important;
 }
 
 html.light .hover\:text-neutral-200:hover {
-  color: #27272a !important;
+  color: #2d1c4d !important;
 }
 
 html.light .hover\:text-white:hover {
-  color: #171717 !important;
+  color: #8a4bd6 !important;
 }
 
 html.light input {
-  color: #171717 !important;
+  color: #1a0f30 !important;
 }
 
 html.light input::placeholder {
-  color: #71717a !important;
+  color: #907dae !important;
 }
 
 html.light .bg-black\/80 {
-  background-color: rgba(23, 23, 23, 0.45) !important;
+  background-color: rgba(26, 15, 48, 0.45) !important;
 }
 
 html.light .bg-white\/10 {
-  background-color: rgba(23, 23, 23, 0.05) !important;
+  background-color: rgba(138, 75, 214, 0.08) !important;
 }
 
 html.light .bg-neutral-900\/80,
 html.light .bg-neutral-900\/90,
 html.light .bg-neutral-900\/95 {
   background-color: #ffffff !important;
-  color: #171717 !important;
+  color: #1a0f30 !important;
 }
 
 html.light .bg-neutral-100 {
-  background-color: #171717 !important;
+  background-color: #8a4bd6 !important;
   color: #ffffff !important;
 }
 
 html.light .bg-neutral-100:hover {
-  background-color: #27272a !important;
+  background-color: #793cc5 !important;
 }
 
 html.light .bg-neutral-100.text-neutral-950,

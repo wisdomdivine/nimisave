@@ -5,6 +5,10 @@ import { Button } from '../common/Button';
 import { useSavings } from '../../context/SavingsContext';
 import { formatNimiqAddress } from '../../services/nimiqService';
 import {
+  isInsideNimiqPayApp,
+  getNimiqPayDeepLink,
+} from '../../services/liveWalletService';
+import {
   Wallet01Icon,
   CheckmarkCircle01Icon,
   Coins01Icon,
@@ -29,22 +33,31 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string>('MetaMask and EVM');
-  const [nimiqInput, setNimiqInput] = useState('');
   const [copied, setCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  const insideApp = isInsideNimiqPayApp();
+
   const providers = [
     {
-      name: 'MetaMask and EVM',
-      desc: 'Sign in with your Ethereum or EVM wallet for non custodial settlement',
-      icon: Wallet01Icon,
-      accentColor: 'text-emerald-400',
+      name: 'Nimiq Pay Mobile App',
+      desc: insideApp
+        ? 'Connect your authenticated account directly inside the Nimiq Pay app'
+        : 'Open directly in the Nimiq Pay mobile app with zero gas fees',
+      icon: Coins01Icon,
+      accentColor: 'text-amber-400',
     },
     {
       name: 'Nimiq Hub',
       desc: 'Live browser native non custodial wallet with zero extension install required',
       icon: Coins01Icon,
       accentColor: 'text-amber-400',
+    },
+    {
+      name: 'MetaMask and EVM',
+      desc: 'Sign in with your Ethereum or EVM wallet for non custodial settlement',
+      icon: Wallet01Icon,
+      accentColor: 'text-emerald-400',
     },
     {
       name: 'Ledger Hardware',
@@ -54,7 +67,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
     },
   ];
 
-  const handleConnect = async (provName: string, customAddr?: string) => {
+  const handleConnect = async (provName: string) => {
     setErrorMessage('');
     setSelectedProvider(provName);
     setIsConnecting(true);
@@ -63,11 +76,14 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
       if (provName === 'MetaMask and EVM' && (typeof window === 'undefined' || !window.ethereum)) {
         throw new Error('No EVM wallet detected. Please install MetaMask, Rabby, or open in a Web3 browser.');
       }
-      if (provName === 'Nimiq Pay' || customAddr) {
-        if (!customAddr || !customAddr.trim()) {
-          throw new Error('Please enter your Nimiq address');
+      if (provName === 'Nimiq Pay Mobile App' || provName === 'Nimiq Pay') {
+        if (isInsideNimiqPayApp()) {
+          await connectWallet('Nimiq Pay');
+        } else {
+          window.location.href = getNimiqPayDeepLink();
+          setIsConnecting(false);
+          return;
         }
-        await connectWallet('Nimiq Pay', customAddr.trim());
       } else {
         await connectWallet(provName);
       }
@@ -110,7 +126,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckmarkCircle01Icon size={16} className="text-emerald-400" />
-                  <span className="text-xs text-neutral-200 font-medium">
+                  <span className="text-xs text-neutral-200 font-light">
                     Connected via {walletProvider || 'Nimiq Hub'}
                   </span>
                 </div>
@@ -120,24 +136,24 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
               </div>
 
               <div className="flex flex-col gap-1">
-                <span className="text-2xs text-neutral-500">
+                <span className="text-2xs text-neutral-500 font-light">
                   Settlement Address
                 </span>
-                <span className="text-xs text-neutral-200 font-mono">
+                <span className="text-xs text-neutral-200 font-mono font-light">
                   {formatNimiqAddress(wallet.nimiqAddress)}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="bg-neutral-900 p-3 rounded-xl flex flex-col gap-0.5">
-                  <span className="text-2xs text-neutral-400">NIM Balance</span>
-                  <span className="text-sm text-neutral-100 font-medium">
+                  <span className="text-2xs text-neutral-400 font-light">NIM Balance</span>
+                  <span className="text-sm text-neutral-100 font-light">
                     {wallet.balanceNim.toLocaleString()} NIM
                   </span>
                 </div>
                 <div className="bg-neutral-900 p-3 rounded-xl flex flex-col gap-0.5">
-                  <span className="text-2xs text-neutral-400">USDT Reserves</span>
-                  <span className="text-sm text-neutral-100 font-medium">
+                  <span className="text-2xs text-neutral-400 font-light">USDT Reserves</span>
+                  <span className="text-sm text-neutral-100 font-light">
                     ${wallet.balanceUsdt.toLocaleString()} USDT
                   </span>
                 </div>
@@ -149,7 +165,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
                 variant="secondary"
                 size="sm"
                 onClick={handleCopy}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer font-light"
               >
                 <Copy01Icon size={15} />
                 <span>{copied ? 'Copied' : 'Copy Address'}</span>
@@ -162,100 +178,54 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ isOpen, 
                   onClose();
                   navigate('/');
                 }}
+                className="cursor-pointer font-light"
               >
                 Disconnect
               </Button>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {/* Nimiq Pay Mobile Address Input */}
-            <div className="p-5 bg-neutral-950 rounded-2xl flex flex-col gap-3.5">
-              <div className="flex items-center gap-3.5">
-                <div className="p-2.5 bg-neutral-900 rounded-xl text-neutral-200">
-                  <Coins01Icon size={18} className="text-amber-400" />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm text-neutral-100 font-medium">
-                    Nimiq Pay Mobile
-                  </span>
-                  <span className="text-2xs text-neutral-400 font-light leading-relaxed">
-                    Copy your NQ address from the Nimiq Pay mobile app and paste it below
-                  </span>
-                </div>
-              </div>
+          <div className="flex flex-col gap-3">
+            {providers.map((p) => {
+              const IconComp = p.icon;
+              const isNimiqPay = p.name === 'Nimiq Pay Mobile App';
+              const actionLabel =
+                isConnecting && selectedProvider === p.name
+                  ? 'Connecting...'
+                  : isNimiqPay && !insideApp
+                  ? 'Open App'
+                  : 'Connect';
 
-              <div className="flex flex-col sm:flex-row items-stretch gap-2.5 pt-1">
-                <input
-                  type="text"
-                  value={nimiqInput}
-                  onChange={(e) => {
-                    setNimiqInput(e.target.value);
-                    if (errorMessage) setErrorMessage('');
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && nimiqInput.trim()) {
-                      handleConnect('Nimiq Pay', nimiqInput.trim());
-                    }
-                  }}
-                  placeholder="NQ... (paste address from Nimiq Pay)"
+              return (
+                <button
+                  key={p.name}
+                  type="button"
                   disabled={isConnecting}
-                  className="flex-1 bg-neutral-900 text-neutral-100 placeholder-neutral-500 text-xs px-4 py-3 rounded-xl outline-none font-mono"
-                />
-                <Button
-                  variant="primary"
-                  size="sm"
-                  disabled={isConnecting || !nimiqInput.trim()}
-                  onClick={() => handleConnect('Nimiq Pay', nimiqInput.trim())}
-                  className="px-5 py-3 whitespace-nowrap cursor-pointer text-xs justify-center"
+                  onClick={() => handleConnect(p.name)}
+                  className="p-4 bg-neutral-950 hover:bg-neutral-850 rounded-2xl flex items-center justify-between gap-4 text-left transition-colors cursor-pointer"
                 >
-                  {isConnecting && selectedProvider === 'Nimiq Pay' ? 'Connecting...' : 'Connect Address'}
-                </Button>
-              </div>
-            </div>
-
-            {/* Other Wallet Providers */}
-            <div className="flex flex-col gap-3">
-              {providers.map((p) => {
-                const IconComp = p.icon;
-                return (
-                  <button
-                    key={p.name}
-                    type="button"
-                    disabled={isConnecting}
-                    onClick={() => {
-                      if (p.name === 'Nimiq Hub' && nimiqInput.trim()) {
-                        handleConnect('Nimiq Pay', nimiqInput.trim());
-                      } else {
-                        handleConnect(p.name);
-                      }
-                    }}
-                    className="p-4 bg-neutral-950 hover:bg-neutral-850 rounded-2xl flex items-center justify-between gap-4 text-left transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="p-2.5 bg-neutral-900 rounded-xl text-neutral-200">
-                        <IconComp size={18} className={p.accentColor} />
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-sm text-neutral-100 font-medium">
-                          {p.name}
-                        </span>
-                        <span className="text-2xs text-neutral-400 font-light leading-relaxed">
-                          {p.desc}
-                        </span>
-                      </div>
+                  <div className="flex items-center gap-3.5">
+                    <div className="p-2.5 bg-neutral-900 rounded-xl text-neutral-200">
+                      <IconComp size={18} className={p.accentColor} />
                     </div>
-                    <span className="text-xs text-neutral-400 flex-shrink-0">
-                      {isConnecting && selectedProvider === p.name ? 'Connecting...' : 'Connect'}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm text-neutral-100 font-light">
+                        {p.name}
+                      </span>
+                      <span className="text-2xs text-neutral-400 font-light leading-relaxed">
+                        {p.desc}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-neutral-400 flex-shrink-0 font-light">
+                    {actionLabel}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
     </Modal>
   );
 };
-

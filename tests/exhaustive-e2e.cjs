@@ -37,9 +37,12 @@ function assert(condition, message) {
   }
 }
 
+const http = require('http');
+
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const client = url.startsWith('https:') ? https : http;
+    client.get(url, (res) => {
       let data = [];
       res.on('data', chunk => data.push(chunk));
       res.on('end', () => {
@@ -207,12 +210,21 @@ async function runTestSuite() {
   // ===========================================================================
   console.log('\n\x1b[1m[Suite 3: Web3 / SIWE Authentication & Iron Encryption]\x1b[0m');
   try {
-    await page.evaluate(() => {
-      const btn = Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('Connect Wallet'));
-      if (btn) btn.click();
+    await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle2' });
+    await new Promise(r => setTimeout(r, 600));
+
+    const alreadyOpen = await page.evaluate(() => {
+      const el = document.querySelector('h3, [role="dialog"]');
+      return el && (el.textContent.includes('Connect') || el.textContent.includes('Wallet'));
     });
 
-    await new Promise(r => setTimeout(r, 600));
+    if (!alreadyOpen) {
+      await page.evaluate(() => {
+        const btn = Array.from(document.querySelectorAll('header button, button')).find(b => b.textContent && (b.textContent.includes('Connect Wallet') || b.textContent.trim() === 'Connect'));
+        if (btn) btn.click();
+      });
+      await new Promise(r => setTimeout(r, 600));
+    }
 
     const modalTitle = await page.evaluate(() => {
       const el = document.querySelector('h3, [role="dialog"]');
@@ -220,33 +232,25 @@ async function runTestSuite() {
     });
     assert(modalTitle.includes('Connect') || modalTitle.includes('Wallet'), 'Connect Settlement Wallet modal opened');
 
-    // Test Nimiq Pay mobile address input presence & validation
-    const nimiqInputExists = await page.evaluate(() => {
-      const input = document.querySelector('input[placeholder*="paste address from Nimiq Pay"]');
+    // Verify insecure manual address input box has been removed for security
+    const manualInputExists = await page.evaluate(() => {
+      const input = document.querySelector('input[placeholder*="paste address"], input[placeholder*="NQ"]');
       return input !== null;
     });
-    assert(nimiqInputExists, 'Nimiq Pay mobile address input box is present in connect modal');
+    assert(!manualInputExists, 'Security verification: Insecure manual address input has been completely removed');
 
-    // Test typing invalid address
-    await page.type('input[placeholder*="paste address from Nimiq Pay"]', 'NQ123');
-    await page.evaluate(() => {
-      const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Connect Address'));
-      if (btn) btn.click();
+    // Verify secure authenticated wallet providers are available
+    const providersListed = await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('button')).map(b => b.textContent);
+      return {
+        hasMetaMask: btns.some(t => t.includes('MetaMask and EVM')),
+        hasNimiqHub: btns.some(t => t.includes('Nimiq Hub')),
+        hasNimiqPay: btns.some(t => t.includes('Nimiq Pay Mobile App')),
+      };
     });
-    await new Promise(r => setTimeout(r, 400));
-    const invalidErrorShown = await page.evaluate(() => {
-      return document.body.innerText.includes('Please enter a valid Nimiq address');
-    });
-    assert(invalidErrorShown, 'Invalid Nimiq address blocked with helpful validation error');
-
-    // Clear input
-    await page.evaluate(() => {
-      const input = document.querySelector('input[placeholder*="paste address from Nimiq Pay"]');
-      if (input) {
-        input.value = '';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    });
+    assert(providersListed.hasMetaMask, 'MetaMask provider available');
+    assert(providersListed.hasNimiqHub, 'Nimiq Hub provider available');
+    assert(providersListed.hasNimiqPay, 'Nimiq Pay Mobile App provider available');
 
     await page.evaluate(() => {
       const option = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('MetaMask and EVM'));

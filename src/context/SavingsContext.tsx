@@ -36,7 +36,9 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import {
   connectLiveEvmWallet,
   connectLiveNimiqHub,
+  connectLiveNimiqPayMiniApp,
   connectLiveNimiqAddress,
+  isInsideNimiqPayApp,
   getLiveWalletSession,
   disconnectLiveWallet,
   fetchLiveNimPrice,
@@ -512,9 +514,9 @@ export const SavingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       session = await connectLiveNimiqAddress(customAddress.trim());
     } else if (provider === 'MetaMask and EVM') {
       session = await connectLiveEvmWallet();
-    } else if (provider === 'Nimiq Pay') {
-      session = await connectLiveNimiqAddress(customAddress || '');
-    } else if (provider === 'Nimiq Hub') {
+    } else if (provider === 'Nimiq Pay' || provider === 'Nimiq Pay Mobile App') {
+      session = await connectLiveNimiqPayMiniApp();
+    } else if (provider === 'Nimiq Hub' || provider === 'Ledger Hardware') {
       session = await connectLiveNimiqHub();
     } else {
       if (typeof window !== 'undefined' && window.ethereum) {
